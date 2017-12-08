@@ -53,6 +53,8 @@ if_matches <- function(ex, keys, ...) {
   keys <- as_bracketed_expressions(keys)
   ex <- as_bracketed_expressions(ex)
   tests <- quos(...)
+  ex_env <- new.env(parent = caller_env()) # an environment in which to evaluate the expressions
+  # so that later expressions know what happened in earlier expressions.
 
   # We'll be indexing both <keys> and <ex> from 2, since slot 1 has
   # the bracket `{`
@@ -70,8 +72,10 @@ if_matches <- function(ex, keys, ...) {
       f_lhs(pattern) <- expr( !! keys[[k]])
 
       # Grab the list of bindings
+      simp_ex <- simplify_ex(ex[[m]])
+      eval_bare(simp_ex, env = ex_env)
       new_bindings <-
-        try(node_match(simplify_ex(ex[[m]]), !!pattern),
+        try(node_match(simp_ex, !!pattern, .env = ex_env),
             silent = TRUE)
 
       # If command throws error, special fail on error
@@ -108,30 +112,6 @@ if_matches <- function(ex, keys, ...) {
 
   # run the tests with these bindings
   run_tests(tests, bindings)
-  # res <- new_checkr_result()
-  # for (k in 1:length(tests)) {
-  #   test_data_fun <- eval_tidy(tests[[k]])
-  #   the_test <- test_data_fun("test")
-  #   # Evaluate the test in the context of the bindings.
-  #   if (eval_tidy(the_test, data = bindings)) {
-  #     # the test is satisfied.
-  #     message = moustache(test_data_fun("message"), bindings)
-  #     action = test_data_fun("action")
-  #     # Short circuit on pass or fail.
-  #     if (action == "note") {
-  #       notes <- c(notes, message)
-  #     } else if (action %in% c("pass", "fail")) {
-  #       res$action <- action
-  #       res$message <- message
-  #       if (res$action == "fail" && ! is.null(notes))
-  #         res$message <- paste(message, "\nNOTE:",
-  #                              paste(notes, collapse = "\n"))
-  #       return(res)
-  #     }
-  #   }
-  # }
-  #
-  # res
 }
 
 

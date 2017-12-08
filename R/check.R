@@ -47,7 +47,7 @@ check <- function(..., USER_CODE = NULL, tests = NULL) {
   res <-
     if (!is.null(last_passing_test)) return(last_passing_test)
     else if (any_matches) new_checkr_result() #default
-    else new_checkr_result(message = "No matches were found.")
+    else new_checkr_result(action = "default", message = "No matches were found.")
 
   return(res)
 }

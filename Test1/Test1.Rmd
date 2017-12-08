@@ -12,13 +12,13 @@ tutorial_options(exercise.checker = checkr2::check_for_learnr)
 ```
 
 
-## Topic 1
+## Coding problems
 
-### Exercise 
+### Addition 
 
 *Here's a simple exercise with an empty code chunk provided for entering the answer.*
 
-Write the R code required to add two plus two:
+Write the R code to add two plus two:
 
 ```{r two-plus-two, exercise=TRUE}
 
@@ -31,58 +31,137 @@ if_matches(USER_CODE, {..(val); .(fn)(..(a), ..(b))},
            failif(a != 2, "Sorry. The first argument must be 2."),
            failif(b != 2, "No luck. The second argument should also be 2.")
 )
-if_matches(USER_CODE, .(fn)(.), failif(TRUE, "{{fn}}() is a function of a single argument.") )
+if_matches(USER_CODE, .(fn)(.), failif(TRUE, "{{fn}}() is a function of a single argument. You want a function of two arguments.") )
 if_matches(USER_CODE, ..(val), failif(val != 4, "Couldn't see any matches."))
 ```
 
-### Exercise with Code
+### Using `rep()`
 
-*Here's an exercise with some prepopulated code as well as `exercise.lines = 5` to provide a bit more initial room to work.*
+a. Create a vector named `Id` that has contents `1 1 1 2 2 2 3 3 3 4 4 4`. Use the `rep()` function to do this.
+```{r bunch-1-a, exercise = TRUE, echo = FALSE}
 
-Now write a function that adds any two numbers and then call it:
-
-```{r add-function, exercise=TRUE, exercise.lines = 5}
-add <- function() {
-  
-}
 ```
 
-## Topic 2
-
-### Exercise with Hint
-
-*Here's an exercise where the chunk is pre-evaulated via the `exercise.eval` option (so the user can see the default output we'd like them to customize). We also add a "hint" to the correct solution via the chunk immediate below labeled `print-limit-hint`.*
-
-Modify the following code to limit the number of rows printed to 5:
-
-```{r print-limit, exercise=TRUE, exercise.eval=TRUE}
-mtcars
+```{r bunch-1-a-solution, echo = FALSE}
+Id <- rep(1:4, each = 3)
 ```
 
-```{r print-limit-hint}
-head(mtcars)
+```{r bunch-1-a-hint-1, echo = FALSE}
+1:4
 ```
 
-### Quiz
-
-*You can include any number of single or multiple choice questions as a quiz. Use the `question` function to define a question and the `quiz` function for grouping multiple questions together.*
-
-Some questions to verify that you understand the purposes of various base and recommended R packages:
-
-```{r quiz}
-quiz(
-  question("Which package contains functions for installing other R packages?",
-    answer("base"),
-    answer("tools"),
-    answer("utils", correct = TRUE),
-    answer("codetools")
-  ),
-  question("Which of the R packages listed below are used to create plots?",
-    answer("lattice", correct = TRUE),
-    answer("tools"),
-    answer("stats"),
-    answer("grid", correct = TRUE)
-  )
-)
+```{r bunch-1-a-hint-2, echo = FALSE}
+rep(1:4, .... = 3) 
 ```
 
+```{r bunch-1-a-check, echo = FALSE}
+# For testing ...
+#USER_CODE <- quote(Id <- c(1,1,1,2,2,2,3,3,3,4,4,4))
+#USER_CODE <- "Id <- rep(1:3, each = 3)"
+if_matches(USER_CODE, ".(fn)(...)",
+           failif(fn != quote(`<-`), "Remember to store the result under the name `Id`."))
+if_matches(USER_CODE, {..(res); `<-`(.(nm), .(val))},
+           failif(nm != quote(Id), "The object should be called `Id`, not '{{nm}}'."),
+           if_matches(val, c(1, 1, 1, ...),
+                      failif(TRUE, "That's not using `rep()`!")),
+           if_matches(val, rep(.(a), `..(nm)` = ..(arg2)),
+                      failif(nm != "each", "Look at the help for `rep()` to see what arguments are available to control the pattern of repetition. (These are documented under `...`)"),
+                      failif(a != quote(1:4) && a != quote(c(1,2,3,4)), "The elements to be repeated are 1 through 4, not {{a}}. Where do you construct that set to hand to `rep()`?")),
+           passif(identical(res, rep(1:4, each = 3)), "Right!")
+           )
+
+```
+
+
+
+b. Create a vector named `Letter` that contains `"a" "b" "c" "a" "b" "c" "a" "b" "c" "a" "b" "c"`
+```{r bunch-1-b, exercise = TRUE, echo = FALSE}
+
+```
+
+```{r bunch-1-b-solution, echo = FALSE}
+Letter <- rep(c("a","b","c"), each = 4)
+```
+
+```{r bunch-1-b-hint-1, echo = FALSE}
+c("a", "b", "c")
+```
+
+```{r bunch-1-b-hint-2, echo = FALSE}
+rep(___, length.out = 12)
+```
+
+```{r bunch-1-b-check, echo = FALSE}
+# For testing ...
+#USER_CODE <- "Letter <- rep(c("a","b","c"), each = 4)"
+if_matches(USER_CODE, ".(fn)(...)",
+           failif(fn != quote(`<-`), "Remember to store the result under the name `Letter`."))
+if_matches(USER_CODE, {..(res); `<-`(.(nm), .(val))},
+           failif(nm != quote(Letter), "The object should be called `Letter`, not '{{nm}}'."),
+           if_matches(val, rep(..(a), `..(nm)` = ..(arg2)),
+                      failif(nm != "each", "Look at the help for `rep()` to see what arguments are available to control the pattern of repetition. (These are documented under `...`)"),
+                      failif( ! identical(a, c("a", "b", "c")),  "The elements to be repeated are `\"a\", \"b\", \"c\"`, not {{a}}. Where do you construct that set to hand to `rep()`?")),
+           passif(identical(res, rep(c("a","b","c"), each = 4)), "Right!")
+      )
+```
+
+
+c. You've constructed `Id` in the previous exercise. Copy the statement you used to do that into this code block. Then create two more vectors:
+    1. `x` which will be evenly spaced numbers between 1 and 43. `x` will have the same length as `Id`.
+    2. `y` which will be similar to `x`, but will consist of evenly spaced numbers between -20 and 0.
+    
+Once you have constructed `x` and `y`, make a data frame called `df` that contains `x`, `y`, `Id` as columns. The variable names should be `x`, `y`, and `Id`.
+
+```{r bunch-1-c, exercise = TRUE, echo = FALSE}
+
+```
+
+```{r bunch-1-c-solution, echo = FALSE}
+Id <- rep(1:4, each = 3)
+x <- seq(1, 43, along.with=Id)
+y <- seq(-20,0, along.with=Id)
+df <- data.frame(x = x, y = y, Id = Id)
+```
+
+```{r bunch-1-c-check, echo = FALSE}
+# USER_CODE <- quote({Id <- rep(1:4, each = 3);
+#   x <- seq(1,42, along.with = Id);
+#   y <- seq(-20, 0, along.with = Id);
+#   df <- data.frame(x = x, y = y, Id = Id)
+# })
+
+fail_if_no_match(USER_CODE, Id <- ., "You didn't create `Id` as requested.")
+if_matches(USER_CODE, `<-`(Id, ..(val)),
+           failif( ! identical(val, rep(1:4, each = 3)), 
+                   "You didn't make `Id` correctly. "))
+fail_if_no_match(USER_CODE, x <- ., "You didn't create `x` as requested.")
+if_matches(USER_CODE, `<-`(x, ..(val)),
+           failif( ! identical(val, seq(1, 43, length = 12)),
+                   "You didn't make `x` correctly."))
+fail_if_no_match(USER_CODE, y <- ., "You didn't create `y` as requested.")
+if_matches(USER_CODE, `<-`(y, ..(val)),
+           failif( ! identical(val, seq(-20, 0, length = 12)),
+                   "You didn't make `y` correctly."))
+fail_if_no_match(USER_CODE, df <- ., "You didn't create `df` as requested.")
+if_matches(USER_CODE, `<-`(df, ..(df)),
+           failif( ncol(df) != 3, "The data frame `df` should have three columns, not {{ncol(df)}}."),
+           failif( ! setequal(names(df), c("Id", "x", "y")), "The names of the data frame variables should be `Id`, `x`, `y`. You've got {{paste(paste0('`', names(df), '`'), collapse=', ')}}."))
+if_matches(USER_CODE, `<-`(df, .(fn)(...)),
+           failif(fn != quote(data.frame), "Use the `data.frame()` function to make the data frame"))
+           
+pass_anyways()
+
+
+```
+
+## Example 1
+
+Modify the code to add two and two:
+
+```{r, example_0, exercise = TRUE}
+1 + 3
+```
+
+```{r example_0-solution}
+2 + 2
+```

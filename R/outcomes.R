@@ -35,3 +35,8 @@ passif <- generic_test("pass")
 failif <- generic_test("fail")
 #' @export
 noteif <- generic_test("note")
+
+#' @export
+pass_anyways <- function(message = "Good!") {
+  new_checkr_result(action = "pass", message = message)
+}

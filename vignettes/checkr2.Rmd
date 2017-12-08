@@ -229,6 +229,11 @@ In the above we used names `x`, `y`, `c`, and `geom` to distinguish the blanks o
 
 ## Chains
 
+## Patterns
+
+- Name of an argument: `` rep(.(a), `..(nm)` = .(b)) ``. Note that the wild-card for the argument name needs to be placed in back-quotes. This is because `..(nm)` is not a valid argument name, but `` `..(nm)`
+`` is.
+
 ## Use in tutorials
 
 The check function for debugging, but don't use it in tutorial check chunks.
