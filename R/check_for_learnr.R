@@ -43,11 +43,15 @@ check_for_learnr <-
                tests = parse(text = check_code))
 
   # turn the result into a value suitable for learnr
-  list(correct = res$action == "passed",
+  feedback_type <- switch(res$action,
+                          "pass" = "success",
+                          "fail" = "error",
+                          "no pattern match" = "warning")
+  final <- list(correct = (res$action == "pass"),
        message = res$message,
-       user_code = user_code,
-       type = ifelse(res$action == passsed,
-                     "success", "info"),
+       type = feedback_type,
        location = "prepend"
   )
+
+  final
 }

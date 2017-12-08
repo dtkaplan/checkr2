@@ -8,7 +8,7 @@ runtime: shiny_prerendered
 library(learnr)
 library(checkr2)
 knitr::opts_chunk$set(echo = FALSE)
-knitr::opts_chunk$set(exercise.checker = checkr2::check_for_learnr)
+tutorial_options(exercise.checker = checkr2::check_for_learnr)
 ```
 
 
@@ -26,10 +26,10 @@ Write the R code required to add two plus two:
 
 ```{r two-plus-two-check}
 if_matches(USER_CODE, {..(val); .(fn)(..(a), ..(b))}, 
-           passif(fn %same_as% as.name("+") && a == b, "It worked!"),
-           failif(fn %not_same_as% as.name("+"), "Use +, not {{fn}}."),
-           failif(a != 2, "The first argument must be 2."),
-           failif(b != 2, "The second argument should also be 2.")
+           passif(fn == as.name("+") && a == b, "It worked!"),
+           failif(fn != as.name("+"), "Use +, not {{fn}}."),
+           failif(a != 2, "Sorry. The first argument must be 2."),
+           failif(b != 2, "No luck. The second argument should also be 2.")
 )
 if_matches(USER_CODE, .(fn)(.), failif(TRUE, "{{fn}}() is a function of a single argument.") )
 if_matches(USER_CODE, ..(val), failif(val != 4, "Couldn't see any matches."))

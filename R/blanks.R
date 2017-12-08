@@ -32,9 +32,13 @@ check_blanks <- function(ex, pat, ...) {
   }
   pat <- as_bracketed_expressions(parse(text = pat_str))[[2]]
   bindings <- grab_bindings(ex, !!pat,
-                req_all_patterns = FALSE,
-                fail_if_no_match = FALSE)
+                req_all_patterns = TRUE,
+                fail_if_no_match = TRUE)
 
+  if (inherits(bindings, "checkr_result")) {
+    # there was no match to the pattern
+    return(new_checkr_result(action = "fail", message = "You changed something other than the blanks. Start over from the beginning."))
+  }
   run_tests(tests, bindings)
 }
 

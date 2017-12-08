@@ -31,7 +31,7 @@ Readers may also want to check out the system for *[submission correctness tests
 
 Consider this problem from trigonometry:
 
-> ![](trig-problem-1.png)
+> ![](trig-problem-1.png)    
 > Write an R statement to compute the numerical value of x.
 
 A mathematically correct answer is $15 \sin(53^\circ)$. The corresponding R command is `15 * sin(53 * pi / 180)`, where the conversion to radians of 53$^\circ$ is accomplished by multiplying by $\pi/180$.
@@ -143,6 +143,86 @@ The checking can be made more elaborate. For instance, suppose we want to warn a
 
 ## Fill in the blanks
 
+A good pedagogical technique when introducing a subject is to start an exercise with part of the answer and ask students to fill in one or more blanks. This approach let's the instructor focus on one part of a command. As an example, consider this problem:
+
+> Fill in the blanks in the following code to create a `ggplot2` command that will produce the following scatter plot with the `mtcars` data.    
+    ```{r echo = FALSE}
+library(ggplot2)
+ggplot(mtcars, aes(x = mpg, y = hp, color = cyl)) +
+  geom_point()
+```
+>
+> There are four named blanks, for instance `..x..`. You'll have to replace all of them with the correct contents to generate the plot.
+```{r eval = FALSE}
+library(ggplot2)
+ggplot(mtcars, aes(x = ..x.., y = ..y.., color = ..c..)) +
+  ..geom..()
+```
+
+Let's suppose the student's submission, after filling in the blanks is
+```{r}
+submission <- "library(ggplot2); 
+ggplot(mtcars, aes(x = hp, y = mpg, color = cyl)) +
+  geom_point()"
+```
+
+To check the submission, we need to create a pattern that will let us look up the student's values for each of the blanks, then compare these to the correct answer. Good news: We can use the prompt itself as a pattern.
+```{r}
+check_blanks(submission,
+             ggplot(mtcars, aes(x = ..x.., y = ..y.., color = ..c..)) + ..geom..(),
+             passif(x == quote(mpg) && y == quote(hp) && 
+                      c == quote(cyl) && geom == quote(geom_point),
+                    "Good job! {{x}}, {{y}}, {{c}}, and {{geom}}"),
+             noteif(x != quote(mpg), "{{x}} is not the variable on the horizontal axis."),
+             noteif(y != quote(hp), "{{y}} is not the right variable for the vertical axis"),
+             noteif(c != quote(cyl), "{{c}} is not the right variable to map to color."),
+             noteif(geom != quote(geom_point), "{{geom}} is not the correct geom to make a scatter plot."),
+             failif(TRUE, "Try again."))
+```
+
+It may seem a bit odd to use `..x..` as a blank. But R names are allowed to begin with `.` and cannot begin with `_`.
+
+Sometimes you will want just one or two blanks and don't want to clutter up the template with named blanks. It's legal to use just dots for the blanks. Each blank must have a unique number of dots, and there must be eight or more dots. To refer to a blank in the tests, take away four dots to get the name of that blank. For example:
+
+> Calculate the hypothenuse length C of a right triangle whose other edges are A and B.    
+    ```{r eval = FALSE}
+C <- .....(A^2 + B^2)
+```
+
+```{r echo = FALSE}
+CHECK2 <- function(submission) check_blanks(submission, C <- ........(A^2 + B^2),
+             passif(.... == quote(sqrt), "Right!"),
+             failif(.... != quote(sqrt), "Think again. {{....}} is not the right function to use."))
+```
+
+The pattern in the checking statement can be the same as the prompt:
+```{r eval = FALSE}
+check_blanks(submission, C <- ........(A^2 + B^2),
+             passif(.... == quote(sqrt), "Right!"),
+             failif(.... != quote(sqrt), "Think again. {{....}} is not the right function to use."))
+```
+
+Let's try some different submissions:
+
+- `C <- sqrt(A^2 + B^2)`
+    ```{r echo = FALSE}
+CHECK2("C <- sqrt(A^2 + B^2)")
+```
+- `C <- log(A^2 + B^2)`
+    ```{r echo = FALSE}
+CHECK2("C <- log(A^2 + B^2)")
+```
+- `C <- ........(A^2 + B^2)` that is, the dots were not replaced
+    ```{r echo = FALSE}
+CHECK2("C <- ........(A^2 + B^2)")
+```
+- `C <- sqrt(A + B)`
+    ```{r echo = FALSE}
+CHECK2("C <- sqrt(A + B)")
+```
+
+In the above we used names `x`, `y`, `c`, and `geom` to distinguish the blanks one from the other. 
+
 ## Values vs expressions
 
 `.(a)` versus `..(a)`
@@ -161,6 +241,13 @@ if_matches(submission_2, 2 + 2, passif(TRUE, "Right!"))
 
 This provides an opportunity, as described in Section "[Multiple `if_matches()`](#multiple_if_matches)", for additional patterns to be tested in following `if_matches()` statements.
 
+## Details
+
+- using `quote(sin)` when comparing to a name
+- at least one of the statements should match all of the patterns
+- using `if_matches()` recursively to study a sub-pattern
+
+## Checking submissions that are not syntactically valid
 
 ## A trivial example: 2 + 2
 
