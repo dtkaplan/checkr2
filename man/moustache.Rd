@@ -4,12 +4,18 @@
 \alias{moustache}
 \title{evaluate expressions in a string using a particular environment}
 \usage{
-moustache(string, bindings = env_parent())
+moustache(string, bindings = rlang::env_parent())
+}
+\arguments{
+\item{string}{a character string which presumably contains some moustaches
+referring to objects found in the bindings environment.}
+
+\item{bindings}{an environment or list in which the objects moustached in \code{string} are defined.}
 }
 \description{
 evaluate expressions in a string using a particular environment
 }
 \examples{
-moustache("hello")
-moustache("Three plus five is {{3+5}}.")
+checkr2:::moustache("hello")
+checkr2:::moustache("Three plus five is {{3+5}}.")
 }

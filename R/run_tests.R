@@ -13,7 +13,7 @@ run_tests <- function(test_list, bindings) {
   bindings[["=="]] <- function(x,y) x %same_as% y
   bindings[["!="]] <- function(x,y) ! x %same_as% y
   for (k in 1:length(test_list)) {
-    test_result <- eval_tidy(test_list[[k]], data = bindings)
+    test_result <- rlang::eval_tidy(test_list[[k]], data = bindings)
     if (inherits(test_result, "checkr_result")) {
       # a recursive call to if_matches()
       action  <- test_result$action
@@ -22,7 +22,7 @@ run_tests <- function(test_list, bindings) {
       # it's a passif(), noteif(), failif()
       the_test <- test_result("test")
       # Evaluate the test in the context of the bindings.
-      if (eval_tidy(the_test, data = bindings)) {
+      if (rlang::eval_tidy(the_test, data = bindings)) {
         # the test is satisfied.
         message <- moustache(test_result("message"), bindings)
         action <- test_result("action")

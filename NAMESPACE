@@ -2,7 +2,6 @@
 
 S3method(print,checkr_result)
 export("%same_as%")
-export(as_bracketed_expressions)
 export(check)
 export(check_blanks)
 export(check_for_learnr)

@@ -15,20 +15,25 @@ mechanism.}
 on the redpen package. This can also be a {}-bracketed set of patterns.}
 
 \item{...}{tests to apply to expressions in \code{ex}. These are typically made
-with \code{passif()}, \code{failif()}, and so on.}
-
-\item{fail}{a optional character string which sets the message to fail with
-if the pattern does not match. By default, a non-matching pattern doesn't produce
-a fail so that evaluation can proceed to subsequent statements.}
+with \code{passif()}, \code{failif()}, \code{noteif()}, \code{if_matches()}, \code{fail_if_no_match()} and so on.}
 }
 \value{
+A checkr_test object with an action ("pass", "fail", or other) and a
+message to be displayed to the user.
+
 a test-result list containing a message string and a directive
 about whether the expressions in \code{ex} passed the test.
 }
 \description{
-Handles testing given the match to a skeleton pattern
+Looks for a match of all the patterns to one of the expressions. If the match is found, the
+tests (see \code{...}) are evaluated in order. A pass or a fail causes an immediate
+termination of the testing and returns that result. If no pass or fail occurs, a neutral result
+is created so that evaluation can proceed to subsequent statements.
 }
 \details{
+If the patterns match some statement in the expressions, then the tests are evaluated
+using the bindings established in the pattern match.
+
 The pattern \code{pat} is applied to each of the expressions in \code{ex}.
 The tests are only considered for the first expression in \code{ex} that matches
 the pattern.  \code{passif()} and \code{failif()} tests, when satisfied, lead to immediate
@@ -41,8 +46,11 @@ wrong1 <- quote(2 - 2)
 wrong2 <- quote(2*2)
 if_matches(ex, 2 + 2, passif(TRUE, "carbon copy"))
 if_matches(ex, `+`(.(a), .(b)), passif(TRUE))
-if_matches(ex, `+`(.(a), .(b)), passif(a==b, message = "Yes, they are equal!"))
-if_matches(ex, `+`(.(a), .(b)), passif(a==b, message = "Yes, they are equal! In this case, they are both {{a}}."))
+if_matches(ex, `+`(.(a), .(b)),
+  passif(a==b, message = "Yes, they are equal!"))
+if_matches(ex, `+`(.(a), .(b)),
+  passif(a==b,
+     message = "Yes, they are equal! In this case, they are both {{a}}."))
 if_matches(wrong1, {.(expr); .(f)(.(a), .(b))},
   passif(f == `+`, "Right! Addition means {{f}}."),
   failif(f != `+`, "In {{expr}}, you used {{f}} instead of +"))
@@ -52,7 +60,8 @@ if_matches(wrong2, {.(fn)(.(a), .(b)); ..(val)},
   noteif(val != 4, "The result should be 4, not {{val}}."),
   passif(fn == `+` && val == 4 && a == b))
 if_matches(quote({data(mtcars); plot(mpg ~ hp, data = mtcars)}),
-  {..(val); .(fn)(.(formula), data = mtcars);}, # note, single . with .(fn)
+  # note, single . with .(fn)
+  {..(val); .(fn)(.(formula), data = mtcars);},
   passif(fn == quote(plot), "You made the plot!"))
 from_txt <- parse(text = "data(mtcars)\\nplot(mpg ~ hp, data = mtcars)")
 if_matches(from_txt, {..(val); ..(fn)(.(formula), data = mtcars);},

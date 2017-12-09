@@ -8,6 +8,24 @@ check_for_learnr(label = NULL, user_code = NULL, solution_code = NULL,
   check_code = NULL, envir_result = NULL, evaluate_result = NULL, ...,
   debug = FALSE)
 }
+\arguments{
+\item{label}{argument passed by learnr system}
+
+\item{user_code}{ditto}
+
+\item{solution_code}{ditto}
+
+\item{check_code}{ditto}
+
+\item{envir_result}{ditto}
+
+\item{evaluate_result}{ditto}
+
+\item{...}{ditto}
+
+\item{debug}{development flag to turn on logging of the information sent by learnr. This
+must be set at compile time, it's not for users.}
+}
 \description{
 When using learnr, the check statements should \emph{NOT} be wrapped with \code{check().}
 Instead, put the \code{if_matches()} functions directly in the check-chunk. The \code{ex} argument
@@ -16,7 +34,9 @@ to \code{if_matches()} should be literally \code{USER_CODE}.
 \examples{
 # as it would be called from the learnr system ...
 check_for_learnr(label = "first", user_code = "sin(pi)",
-  check_code = 'if_matches(USER_CODE, .(fn)(..(a)), passif(fn \%same_as\% as.name("sin") && a == pi, message="Right-o!"))')
+  check_code =
+  'if_matches(USER_CODE, .(fn)(..(a)), passif(fn \%same_as\% as.name("sin") &&
+  a == pi, message="Right-o!"))')
 
 
 }

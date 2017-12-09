@@ -1,8 +1,10 @@
 #' Grab any bindings from a pattern match
 #'
-#' This is too similar to the code in `if_matches()`.
-#' @param keys the set of patterns
 #' @param ex the expression to be searched for the patterns
+#' @param keys the set of patterns
+#' @param req_all_patterns Logical. If `TRUE`, then all patterns must match some
+#' expression in ex.
+#' @param fail_if_no_match Logical. If `TRUE`, then all expressions must match a pattern. (IS THIS RIGHT?)
 #'
 #' @examples
 #' ex <- quote(plot(mpg ~ wt, data = subset(mtcars, hp < 150)))
@@ -17,7 +19,7 @@
 grab_bindings <- function(ex, keys,
                           req_all_patterns = TRUE,
                           fail_if_no_match = TRUE) {
-  keys <- node_cadr(enquo(keys))
+  keys <- rlang::node_cadr(rlang::enquo(keys))
   # make sure the statements, even if from parse(),
   # are put into the form of a set of bracketed expressions
   keys <- as_bracketed_expressions(keys)
@@ -32,11 +34,11 @@ grab_bindings <- function(ex, keys,
       # a formula whose RHS copies the environment
       # that node_match will put in .data
       pattern <- LHS ~ copy_env(.data)
-      f_lhs(pattern) <- expr( !! keys[[k]])
+      rlang::f_lhs(pattern) <- rlang::expr( !! keys[[k]])
 
       # Grab the list of bindings
       new_bindings <-
-        try(node_match(simplify_ex(ex[[m]]), !!pattern),
+        try(redpen::node_match(simplify_ex(ex[[m]]), !!pattern),
             silent = TRUE)
 
       # If command throws error, special fail on error

@@ -11,6 +11,7 @@ vignette: >
 
 ```{r setup, include = FALSE}
 library(checkr2)
+library(ggplot2)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -67,7 +68,7 @@ submission_2 <- "theta <- 53 * pi/180; r <- 15; r*sin(theta)"
 submission_3 <- "ang <- pi * (53 / 180); sin(ang) * 15"
 ```
 
-Since it will be difficult to list every possible statement that produces a correct answer, it's important that the pattern language automatically handle trivial permutations of the correct command, unnecessary grouping parentheses, unconventional whitespace.
+Since it will be difficult to list every possible statement that produces a correct answer, it's important that the pattern language automatically handle trivial permutations of the correct command, unnecessary grouping parentheses, unconventional whitespace, etc.
 
 To start, here's a pattern that stands for "the sine of something": `sin(.)`. The `.` inside the parentheses means "any single argument." 
 
@@ -223,6 +224,9 @@ CHECK2("C <- sqrt(A + B)")
 
 In the above we used names `x`, `y`, `c`, and `geom` to distinguish the blanks one from the other. 
 
+
+## OUTLINEY from here on
+
 ## Values vs expressions
 
 `.(a)` versus `..(a)`
@@ -254,64 +258,8 @@ This provides an opportunity, as described in Section "[Multiple `if_matches()`]
 
 ## Checking submissions that are not syntactically valid
 
-## A trivial example: 2 + 2
+There's nothing for this in the package. There needs to be.
 
-As an illustration of the need for an evaluation system and how `checkr2` statements can be writen, consider this trivial problem: 
-
-> Write the code to add two and two. 
-
-We expect the student to submit `2 + 2` as the response. But they might have
-
-* submitted nothing
-* made a correct submission, say, `2 + 2`
-* made a correct submission, but written in some other way, say,  `2+2` or `(2 + 2)` or even `((2 + (1+1)))` or the obscure `"+"(2, 2)`. 
-* submitted something with the correct overall value but not as a result of the desired computation, e.g. `3 + 1` or `2 ^ 2`
-* submitted something that doesn't even have the correct overall value
-* submitted something irrelevant, like `exp(1)`
-
-Ultimately, we'd like the checking system to be able to distinguish amount these different kinds of submissions, and when the submission is incorrect give some guidance about what went wrong.
-
-## Evaluating a submission
-
-A tutorial system will typically collect the student code submissions as text. For illustration, suppose that the tutorial system provides a character string as the student submission. We'll imagine this being provided to the checking system in the form of an object named `submission`:
-```{r}
-submission <- "2 + 2"
-```
-The task undertaken by an evaluation system is to process the submission to check that the submission meets the standards set by the author of the problem. It is up to the author to determine what these standards should be.
-
-To start simply, suppose the author requires that the submission be equivalent to `2 + 2`.  This can be accomplished with the following `checkr2` statement:
-
-```{r}
-if_matches(submission, 2 + 2, passif(TRUE, "Right!"))
-```
-
-There are arguments to `if_matches()`:
-
-1. The *submission* to be checked. Here, the submission is presented as a character string. 
-2. A *pattern* that describes a possible form to consider. Here, the pattern is an ordinary R expression, `2 + 2`. Later, you'll see some variations. Note that it's not in quotes.
-3. An invocation of the function `passif()`, which itself takes two arguments: the first is a test, that is, a logical statement which usually will involve some feature defined in the pattern. The second is a message which will passed back to the tutorial system if the test passes. Here, the test is very simple: `TRUE`, that is, the test always passes. You'll also see other functions such as `failif()` and `noteif()` used as arguments to `if_matches()`.
-
-
-
-
-It's important to note that the pattern `2 + 2` is not at all the same as the pattern `4`. [[IN DRAFT: I would like to use this example, but it causes the R session to crash.
-```{r eval = FALSE}
-if_matches(submission, 4, passif(TRUE, "Right!"))
-```
-end of in-draft note]] It's true that `2 + 2` is an instruction leading to the value 4, but as a pattern, `2 + 2` is more specific. It means the function `+` being applied to two arguments, each of which is the numeral `2`. The `if_matches()` function uses "non-standard evaluation" to hold back on performing the calculation `2 + 2` and instead to consider `2 + 2` as an R expression that must contain the `+` operation. As an expression, `2 + 2` is completely different from, say, `2 ^ 2`, even though both expressions, when evaluated, will produce the number 4.
-
-In many situations, the exercise author would like to provide some constructive feedback in the event of an incorrect submission. For instance, consider
-
-```{r}
-submission_3 <- "2 ^ 2"
-```
-
-Certainly this submission should fail, since it fails to match the instructions for the problem, "Write an expression to add two plus two." But in failing, if may be desired to point out that the problem is with `^`. To accomplish this, use a pattern that gives a name to the operator. (Note in DRAFT: The `quote()` isn't strictly needed here, because `+` is a primitive. But in general it's better to use `quote()` or `as.name("+")` to indicate that the test is comparing the corresponding symbols in the submission and pattern.)
-
-```{r}
-if_matches(submission, .(fn)(...), 
-           failif(fn != quote(`+`), "{{fn}} is not the correct function to use."))
-```
 
 What's the meaning of `.(fn)(...)`? NEED TO SAY it's a legal R expression, even if it isn't one that many experienced R users would recognize. `...` is a legal statement in R, although typically used only *within* functions. And `.(fn)` is a legal statement, which would usually be read as "the function named `.` being applied to the value of `fn`." The point here is that patterns must be legal R expressions, and `.(fn)(...)` satisfies this. But the components `...` and `.(fn)` in a pattern do not have their usual meaning. Instead, they follow the conventions of the `redpen` package.
 
@@ -339,54 +287,6 @@ Here are a few patterns that will be relevant to the rest of the example:
 The facilities for implementing and applying these sorts of patterns are provided by the remarkable `redpen` package in conjunction with `rlang`.
 
 
-AS WE CONTINUE, as a standard, the command should be exactly `2 + 2`, but please provide some formative feedback to help steer the student toward a correct answer...
-
-
-
-```r
-2 + 2     # correct
-2 / 2     # right arguments but wrong function
-3 + 1     # right function but wrong arguments
-`+`(2, 2) # correct
-(2 + 2)   # correct
-```
-
-Note that it's not sufficient merely to check that the result of the calculation is the value 4. Submission three produces a value of 4 but is an incorrect answer to the stated problem. So in addition to checking the result, aspects of the way the result was calculated should also be checked. Here, that means perhaps these three things:
-
-1. That `+` was used appropriately.
-2. That the first argument to `+` is 2.
-3. That is second argument to `+` is 2. 
-
-Just playing around for debugging purposes ...
-```{r}
-2 %same_as% 2
-quote(sin) %same_as% `sin`
-quote(sin) %same_as% quote(sin)
-quote(sin) %same_as% as.name("sin")
-quote(1+1) %same_as% 2
-
-submission <- quote({a <- 3; b <- 4; C <- sqrt(a^2 + b^2)})
-submission2 <- quote(C <- a^2 + b^2)
-if_matches(submission, `<-`(C, sqrt(.(arg))), passif(arg == quote(a^2 + b^2), "Yes, twenty-five!"))
-if_matches(submission, .(res), passif(TRUE, "res was {{res}}."))
-if_matches(submission, `<-`(`C`, sqrt(.(res)), 
-  failif(res == quote(a^2 + b^2), "you forgot to take the square root of {{res}}." ), 
-  passif(res == quote(a^2 + b^2), "{{res}} is inside sqrt()")))
-if_matches(submission2, `<-`(.(nm), ...), passif(nm %same_as% quote(C), "You assigned to {{nm}}."))
-```
-
-
-THIS IS FOR CHECKR, not `checkr2`.
-Here are some tests from `checkr` that are relevant. Each test takes the form of a pattern and a message to return if that pattern is not found.
-```{r}
-library(checkr)
-test_1 <- find_call("whatever + whatever", "you need to use addition (+)")
-test_2 <- find_call("2 + whatever", "the first argument should be 2")
-test_3 <- find_call("whatever + 2", "the second argument should be 2")
-test_4 <- check_value(agrees(x == 4), "the result should be 4")
-```
-
-The first test makes sure that `+` has been used with two arguments, but disregards the values of the arguments. The second test checks that 2 is the first argument. The third test checks that 3 is the second argument. The messages for each test can be focussed as much as desired because the individual tests each look for a specific aspect of the calculation.
 
 ## Multiple `if_matches` {#multiple_if_matches}
 
@@ -406,7 +306,7 @@ WHERE IS THIS GOING?
 - The quoting goes on automatically when a string is passed as the submission.
 
 ```{r}
-submission <- "sin(x)"
+submission <- "x <- 3; sin(x)"
 # This will work. `fn` will be a symbol, as will `quote(sin)`.
 if_matches(submission, .(fn)(.(arg)), passif(fn == quote(sin), "Function is {{fn}}, argument is {{arg}}"))
 # This won't work. `fn` will be a symbol, but `sin` is a function, not a symbol.
@@ -428,7 +328,7 @@ if_matches(submission, ..(fn)(.(arg)), passif(fn == sin, "Function is {{fn}}, ar
     - Notice that the pattern has a single dot (`.(nm)`) for the assigned-to part of pattern. Similarly, the value to which it's being compared is in `quote()`, as appropriate for matching a language-name object.
 - Distinguish between `.(a)` and `..(a)`. Suppose you want to check which trigonometric function has been used in a command like `quote(cos(x))`. An appropriate pattern would be `.(fn)(...)`, like this:
 ```{r}
-submission <- quote(cos(x))
+submission <- quote({x <- pi; cos(x)})
 pattern <- quote(.(fn)(.(var))) # will have to unquote
 if_matches(submission, !!pattern, passif(TRUE, "Found match"))
 if_matches(submission, .(fn)(.(var)),

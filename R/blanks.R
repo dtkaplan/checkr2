@@ -16,11 +16,12 @@
 #' as_posted <- quote({res <- ..fn..(`+`(`^`(a, ..exp1..), `^`(b, ..exp2..)))})
 #' @export
 check_blanks <- function(ex, pat, ...) {
-  cmd <- enquo(pat)
-  tests <- quos(...)
-  pat_str <- deparse(get_expr(cmd))
+  cmd <- rlang::enquo(pat)
+  tests <- rlang::quos(...)
+  pat_str <- deparse(rlang::get_expr(cmd))
   blank_names <- unlist(
-    str_extract_all(string = pat_str, "\\.{2}[\\._a-zA-Z0-9]+\\.{2}")
+    stringr::str_extract_all(string = pat_str,
+                             "\\.{2}[\\._a-zA-Z0-9]+\\.{2}")
   )
   blank_alphanum <- gsub("^..|..$", "", blank_names)
 

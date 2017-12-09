@@ -30,13 +30,13 @@
 #' @export
 check <- function(..., USER_CODE = NULL, tests = NULL) {
   sequence <-
-    if (is.null(tests)) quos(...)
+    if (is.null(tests)) rlang::quos(...)
     else tests
 
   any_matches <- FALSE
   last_passing_test <- NULL
   for (k in 1:length(sequence)) {
-    res <- eval_tidy(sequence[[k]])
+    res <- rlang::eval_tidy(sequence[[k]])
     if ( ! inherits(res, "checkr_result"))
       stop("Can only accept arguments producing checkr-result objects, e.g. if_matches().")
     if (res$action != "no pattern match") any_matches <- TRUE
@@ -59,6 +59,6 @@ new_checkr_result <- function(action = "default", message = "") {
   res
 }
 #' @export
-print.checkr_result <- function(x) {
+print.checkr_result <- function(x, ...) {
   cat(paste0("Test result ", x$action, " with message \"", x$message, "\"\n"))
 }

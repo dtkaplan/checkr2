@@ -19,7 +19,7 @@
 generic_test <- function(result = c("pass", "fail", "note") ) {
   result <- match.arg(result)
   function(test, message = "default message") {
-    test <- enquo(test)
+    test <- rlang::enquo(test)
     function(task) {
       if (task == "test") return(test)
       if (task == "message") return(message)
@@ -36,7 +36,4 @@ failif <- generic_test("fail")
 #' @export
 noteif <- generic_test("note")
 
-#' @export
-pass_anyways <- function(message = "Good!") {
-  new_checkr_result(action = "pass", message = message)
-}
+

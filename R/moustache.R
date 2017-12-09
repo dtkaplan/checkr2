@@ -1,8 +1,12 @@
 #' evaluate expressions in a string using a particular environment
+#'
+#' @param string a character string which presumably contains some moustaches
+#' referring to objects found in the bindings environment.
+#' @param bindings an environment or list in which the objects moustached in `string` are defined.
 #' @examples
-#' moustache("hello")
-#' moustache("Three plus five is {{3+5}}.")
-moustache <- function(string, bindings = env_parent()) {
+#' checkr2:::moustache("hello")
+#' checkr2:::moustache("Three plus five is {{3+5}}.")
+moustache <- function(string, bindings = rlang::env_parent()) {
   # pull out all the instances of {{expr}} from the string
   the_moustache <- '\\{\\{.*?\\}\\}' # not greedy
   matches <- unlist(stringr::str_extract_all(string, the_moustache))

@@ -4,10 +4,22 @@
 #' Instead, put the `if_matches()` functions directly in the check-chunk. The `ex` argument
 #' to `if_matches()` should be literally `USER_CODE`.
 #'
+#' @param label argument passed by learnr system
+#' @param user_code ditto
+#' @param solution_code ditto
+#' @param check_code ditto
+#' @param envir_result ditto
+#' @param evaluate_result ditto
+#' @param ... ditto
+#' @param debug development flag to turn on logging of the information sent by learnr. This
+#' must be set at compile time, it's not for users.
+#'
 #' @examples
 #' # as it would be called from the learnr system ...
 #' check_for_learnr(label = "first", user_code = "sin(pi)",
-#'   check_code = 'if_matches(USER_CODE, .(fn)(..(a)), passif(fn %same_as% as.name("sin") && a == pi, message="Right-o!"))')
+#'   check_code =
+#'   'if_matches(USER_CODE, .(fn)(..(a)), passif(fn %same_as% as.name("sin") &&
+#'   a == pi, message="Right-o!"))')
 #'
 #'
 #' @export

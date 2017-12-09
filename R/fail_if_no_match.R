@@ -14,7 +14,7 @@
 
 #' @export
 fail_if_no_match <- function(ex, key, message = "Pattern not found.") {
-  keys <- node_cadr(enquo(key))
+  keys <- rlang::node_cadr(rlang::enquo(key))
   # make sure the statements, even if from parse(),
   # are put into the form of a set of bracketed expressions
   keys <- as_bracketed_expressions(keys)
@@ -31,12 +31,12 @@ fail_if_no_match <- function(ex, key, message = "Pattern not found.") {
     for (k in 2:length(keys)) {
       # a formula whose RHS is TRUE
       pattern <- LHS ~ TRUE
-      f_lhs(pattern) <- expr( !! keys[[k]])
+      rlang::f_lhs(pattern) <- rlang::expr( !! keys[[k]])
 
       # Grab the list of bindings
       simp_ex <- simplify_ex(ex[[m]])
       did_it_match <-
-        try(node_match(simp_ex, !!pattern),
+        try(redpen::node_match(simp_ex, !!pattern),
             silent = TRUE)
 
       # If command throws error, special fail on error
@@ -44,7 +44,7 @@ fail_if_no_match <- function(ex, key, message = "Pattern not found.") {
         return(
           new_checkr_result(
             action = "Fail on error",
-            message = as.character(new_bindings) # holds error message
+            message = "error evaluating user code" # holds error message
           )
         )
       }

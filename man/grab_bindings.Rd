@@ -10,9 +10,14 @@ grab_bindings(ex, keys, req_all_patterns = TRUE, fail_if_no_match = TRUE)
 \item{ex}{the expression to be searched for the patterns}
 
 \item{keys}{the set of patterns}
+
+\item{req_all_patterns}{Logical. If \code{TRUE}, then all patterns must match some
+expression in ex.}
+
+\item{fail_if_no_match}{Logical. If \code{TRUE}, then all expressions must match a pattern. (IS THIS RIGHT?)}
 }
 \description{
-This is too similar to the code in \code{if_matches()}.
+Grab any bindings from a pattern match
 }
 \examples{
 ex <- quote(plot(mpg ~ wt, data = subset(mtcars, hp < 150)))
