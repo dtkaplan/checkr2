@@ -224,6 +224,23 @@ CHECK2("C <- sqrt(A + B)")
 
 In the above we used names `x`, `y`, `c`, and `geom` to distinguish the blanks one from the other. 
 
+## Checking submissions that throw an error
+
+Sometimes students will submit code that throws an error, either at parse time or at run time. By default, learnr displays such errors in their native, somewhat cryptic format. 
+
+`checkr2` has some simple error-catching logic that tries to translate the native R messages into a friendlier format.  To turn this on, you need to add a `-code-check` chunk to each exercise.
+
+* [ASIDE] I would rather that code checking be turned on or off at the document level, perhaps as a choice in `check_for_learnr()`. 
+* [ASIDE] I would also rather that the evaluation of the exercise take place entirely in the checking function, rather than being run first by learnr and then handed off to the checking function.
+
+For an exercise named `prob-1` the code check chunk will look like:
+
+    ` ``{r prob-1-code-check, echo = FALSE}
+    1 # there must be some content
+    ```
+
+If, when trying out your exercises, you find a parsing or run-time error that isn't captured by `checkr2`, please submit an "issue" on the GitHub site so that we can add that into the system.
+
 
 ## OUTLINEY from here on
 
@@ -256,9 +273,7 @@ This provides an opportunity, as described in Section "[Multiple `if_matches()`]
 - at least one of the statements should match all of the patterns
 - using `if_matches()` recursively to study a sub-pattern
 
-## Checking submissions that are not syntactically valid
 
-There's nothing for this in the package. There needs to be.
 
 
 What's the meaning of `.(fn)(...)`? NEED TO SAY it's a legal R expression, even if it isn't one that many experienced R users would recognize. `...` is a legal statement in R, although typically used only *within* functions. And `.(fn)` is a legal statement, which would usually be read as "the function named `.` being applied to the value of `fn`." The point here is that patterns must be legal R expressions, and `.(fn)(...)` satisfies this. But the components `...` and `.(fn)` in a pattern do not have their usual meaning. Instead, they follow the conventions of the `redpen` package.

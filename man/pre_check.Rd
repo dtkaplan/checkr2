@@ -6,8 +6,18 @@
 \usage{
 pre_check(user_code, soln_code = "hello")
 }
+\arguments{
+\item{user_code}{A character string containing the code to be checked.}
+
+\item{soln_code}{Code, if any, containing a correct solution.}
+}
+\value{
+A list containing fields \code{correct} and \code{message}. If \code{correct}
+is \code{TRUE}
+}
 \description{
-Pre-check code
+Checks first whether the code parses. If so, funs the code looking for errors.
+If any errors are found, a diagnostic message is returned.
 }
 \examples{
 code <- "lm(mpg ~ hp, data <- mtcars); plot(1:10); x <- 1\\n y <- x^2\\n\\n z = cos(yy * xx^2)"

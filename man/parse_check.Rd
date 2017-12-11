@@ -10,11 +10,14 @@ parse_check(user_code)
 \item{user_code}{a character string containing the code to parse}
 }
 \description{
-Look for errors at parse time
+Parses the code (without evaluating it) to look for parse errors. If any are found,
+a somewhat friendly message is returned.
 }
 \examples{
-code <- "lm(mpg ~ hp, \\ndata = mtcars); \\nplot((1:10)\\n x <- f[b]\\n y <- x^2\\n\\n z = cos(yy * xx^2)"
-parse_check(code)
-code2 <- "__blank__ <- 2"
+code <- "lm(mpg ~ hp, \\ndata == mtcars); \\nplot(1:10)\\n x <- f[b]\\n y <- x^2\\n\\n z = cos(yy * xx^2)"
+cat(parse_check(code)$message)
+code2 <- "x <- 3\\ny <- x^2\\n__blank__ <- 2"
 cat(parse_check(code2)$message)
+code3 <- "x["
+cat(parse_check(code3)$message)
 }

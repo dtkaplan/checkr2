@@ -2,7 +2,8 @@
 % Please edit documentation in R/pass_anyways.R
 \name{pass_anyways}
 \alias{pass_anyways}
-\title{Produce a passing test result with a message.}
+\alias{fail_anyways}
+\title{Produce a test result definitively.}
 \usage{
 pass_anyways(message = "Good!")
 }
@@ -10,6 +11,6 @@ pass_anyways(message = "Good!")
 \item{message}{a character string giving the message for success.}
 }
 \description{
-This is used to guarantee a pass result if no other checking function returns a
+These are used to guarantee a pass or fail result if no other checking function returns a
 pass or fail.
 }

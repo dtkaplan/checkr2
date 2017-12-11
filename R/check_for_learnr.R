@@ -31,26 +31,47 @@ check_for_learnr <-
          envir_result = NULL,
          evaluate_result = NULL, ...,
          debug = FALSE) {
-  # while debugging
-  if(debug) {
-    save_file_name <- sprintf("~/Downloads/CheckR/chunk-%s.rds", label)
-    saveRDS(list(label = label,
-                 user_code = user_code,
-                 solution_code = solution_code,
-                 check_code = check_code,
-                 envir = envir_result,
-                 evaluate_result = evaluate_result),
-            file = save_file_name)
-  }
-  # Pre-evaluation checking
-  # if (is.null(envir_result)) {
-  #   res <- pre_check_code(user_code, check_code)
-  #   if (nchar(res) > 0)
-  #     return(list(message = res, correct = FALSE))
-  #   else
-  #     return(TRUE)
-  # }
+    # while debugging
+    if(debug) {
+      save_file_name <- sprintf("~/Downloads/CheckR/chunk-%s.rds", label)
+      saveRDS(list(label = label,
+                   user_code = user_code,
+                   solution_code = solution_code,
+                   check_code = check_code,
+                   envir = envir_result,
+                   evaluate_result = evaluate_result),
+              file = save_file_name)
+    }
 
+    # Pre-evaluation checking
+    # Only this part will be run for pre-evaluation. So a conclusive result must be returned.
+    if (is.null(envir_result)) {
+      res <- pre_check(user_code, solution_code)
+      if ( ! res$correct) { # return a list in the right form for learnr
+        return(list(correct = FALSE, type = "error", location = "prepend",
+                    message = res$message))
+      } else {
+        return(TRUE)
+      }
+    }
+
+    # Always check parsing if it wasn't checked before
+    #
+    # NOTE: This will only be relevant if the code is *not* evaluated by learnr.
+    # That happens when there is a check-code chunk.
+    # I want to turn it off more generally.
+    if (! is.null(envir_result)) {
+      cat("We're checking it now.\n")
+      res <- parse_check(user_code)
+      if ( ! res$correct) { # return a list in the right form for learnr
+        return(list(correct = FALSE, type = "error", location = "prepend",
+                    message = res$message))
+      }
+    }
+
+  # If we got here ...
+  # The user code parsed successfully and, if there is a -check-code chunk,
+  # it evaluated successfully. Now see if it passes the exercise author's tests.
   res <- check(USER_CODE = user_code,
                tests = parse(text = check_code))
 

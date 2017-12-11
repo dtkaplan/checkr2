@@ -1,5 +1,8 @@
 #' Look for errors at parse time
 #'
+#' Parses the code (without evaluating it) to look for parse errors. If any are found,
+#' a somewhat friendly message is returned.
+#'
 #' @param user_code a character string containing the code to parse
 #'
 #'
@@ -34,7 +37,7 @@ parse_check <- function(user_code) {
     if (grepl("unexpected INCOMPLETE_STRING", problem$message)) {
       kind_message <- "you seem to have unmatched quotation marks. The system is looking for a closing quotation mark at or before the point marked."
     } else if (grepl("unexpected end of input", problem$message)) {
-      kind_message <- "your command seems to have ended prematurely, before it was completed."
+      kind_message <- "your command<br> seems to have ended prematurely, before it was completed."
     } else if (grepl("unexpected input", problem$message)) {
       kind_message <- "you have a character that's not appropriate, e.g.\n- a name that starts with _\n- There must be some OTHERS..."
     } else if (grepl("unexpected '", problem$message)) {
@@ -46,10 +49,6 @@ parse_check <- function(user_code) {
       kind_message <- "there is an unanticipated kind of parsing error. Tell Danny."
     }
   }
-
-  # list(correct = correct, kind_message = kind_message,
-  #      message = message, marked_code = marked_code,
-  #      call = problem$call, line_number = line_no)
 
   final_message <-
     if (correct) "No parsing problems!"

@@ -1,5 +1,14 @@
 #' Pre-check code
 #'
+#' Checks first whether the code parses. If so, funs the code looking for errors.
+#' If any errors are found, a diagnostic message is returned.
+#'
+#' @param user_code A character string containing the code to be checked.
+#' @param soln_code Code, if any, containing a correct solution.
+#'
+#' @return A list containing fields `correct` and `message`. If `correct`
+#' is `TRUE`
+#'
 #' @examples
 #' code <- "lm(mpg ~ hp, data <- mtcars); plot(1:10); x <- 1\n y <- x^2\n\n z = cos(yy * xx^2)"
 #' pre_check(code)
@@ -7,6 +16,10 @@
 #'
 #' @export
 pre_check <- function(user_code, soln_code = "hello") {
+  # first, see if the user_code can be parsed
+  parse_result <- parse_check(user_code)
+  if ( ! parse_result$correct) return(parse_result)
+
   # an environment in which to check the code
   ex_env <- new.env(parent = rlang::caller_env())
   # evaluate the user code (presented as a string)
@@ -41,9 +54,8 @@ pre_check <- function(user_code, soln_code = "hello") {
   # What source line did the problem come up in?
   source_line <- lapply(parsed, is_source)
   line_no <- sum(unlist(source_line)) + 1
-  # this doesn't work
-  # good_code <- paste(lapply(parsed[-line_no], FUN = get_code_line), collapse = "\n")
 
+  # A plan for expansion???
   # Use these for later comparison
   # Or will this be too varied from perhaps correct answers
   valid_symbols <- all.vars(parse(text = soln_code))
@@ -51,11 +63,6 @@ pre_check <- function(user_code, soln_code = "hello") {
   error_string <- parsed[[line_no]]$message
   error_call <- redpen::node_match(parsed[[line_no]]$call, .(fn)(...) ~ fn)
 
-
-  # Look for incomplete strings
-  if (grepl("INCOMPLETE_STRING", error_string, fixed = TRUE)) {
-    return(list(correct = FALSE, message = "unmatched quotation marks"))
-  }
   # Look for undefined objects
   match <- find_error_name('object {{var}} not found', error_string)
   if ( ! is.na(match)) {
@@ -69,7 +76,8 @@ pre_check <- function(user_code, soln_code = "hello") {
     }
     return(list(correct = FALSE,
                 message =
-                  paste0("On line ", line_no - 1, " or ", line_no, ": '", match, "' is not the name of an existing ", kind_of_object, ".")))
+                  paste0("On line ", line_no - 1, " or ", line_no, ": '", match,
+                         "' is not the name of an existing ", kind_of_object, ".")))
   }
   # Look for undefined functions
   match <- find_error_name('could not find function {{var}}', error_string)
@@ -80,7 +88,9 @@ pre_check <- function(user_code, soln_code = "hello") {
                   paste0("On line ", line_no, ": '", match, "' is not the name of any function.")))
   }
 
-  list(problem_line_no, line_no, error_string, ex_env)
+  list(correct = TRUE,
+       message = paste("Failure not yet included in pre_check(). Code was",
+                       as.character(error_call), "with error: ", error_string))
 }
 
 # Pull out a problem name, if any, from an error message
@@ -90,6 +100,6 @@ pre_check <- function(user_code, soln_code = "hello") {
 find_error_name <- function(str, message) {
   var_pattern <- '[\\\'\\"]([._a-zA-Z0-9]*)[\\\'\\"]'
   str <- gsub("{{var}}", var_pattern, str, fixed = TRUE)
-  stringr::str_match(message, var_pattern)[1,2]
+  stringr::str_match(message, str)[1,2]
 }
 

@@ -9,6 +9,7 @@ library(learnr)
 library(checkr2)
 knitr::opts_chunk$set(echo = FALSE)
 tutorial_options(exercise.checker = checkr2::check_for_learnr)
+# tutorial_options(exercise.checker = function(...) cat("Bogus checker\n"))
 ```
 
 
@@ -24,6 +25,10 @@ Write the R code to add two plus two:
 
 ```
 
+```{r two-plus-two-code-check}
+1 # To trigger pre-check, this chunk must have something in it.
+```
+
 ```{r two-plus-two-check}
 if_matches(USER_CODE, {..(val); .(fn)(..(a), ..(b))}, 
            passif(fn == as.name("+") && a == b, "It worked!"),
@@ -31,7 +36,7 @@ if_matches(USER_CODE, {..(val); .(fn)(..(a), ..(b))},
            failif(a != 2, "Sorry. The first argument must be 2."),
            failif(b != 2, "No luck. The second argument should also be 2.")
 )
-if_matches(USER_CODE, .(fn)(.), failif(TRUE, "{{fn}}() is a function of a single argument. You want a function of two arguments.") )
+if_matches(USER_CODE, .(fn)(.), failif(TRUE, "{{fn}}() is a function of a single argument. You want a function of two arguments that adds its arguments.") )
 if_matches(USER_CODE, ..(val), failif(val != 4, "Couldn't see any matches."))
 ```
 
@@ -54,6 +59,10 @@ Id <- rep(1:4, each = 3)
 rep(1:4, .... = 3) 
 ```
 
+```{r bunch-1-a-code-check, echo = FALSE}
+1 # There must be something in this chunk.
+```
+
 ```{r bunch-1-a-check, echo = FALSE}
 # For testing ...
 #USER_CODE <- quote(Id <- c(1,1,1,2,2,2,3,3,3,4,4,4))
@@ -64,11 +73,13 @@ if_matches(USER_CODE, {..(res); `<-`(.(nm), .(val))},
            failif(nm != quote(Id), "The object should be called `Id`, not '{{nm}}'."),
            if_matches(val, c(1, 1, 1, ...),
                       failif(TRUE, "That's not using `rep()`!")),
-           if_matches(val, rep(.(a), `..(nm)` = ..(arg2)),
+           if_matches(val, rep(..(a), `..(nm)` = ..(arg2)),
                       failif(nm != "each", "Look at the help for `rep()` to see what arguments are available to control the pattern of repetition. (These are documented under `...`)"),
-                      failif(a != quote(1:4) && a != quote(c(1,2,3,4)), "The elements to be repeated are 1 through 4, not {{a}}. Where do you construct that set to hand to `rep()`?")),
-           passif(identical(res, rep(1:4, each = 3)), "Right!")
-           )
+                      failif(arg2 != 3, "How many times do you need to repeat each element?"),
+                      failif(!identical(a, 1:4), "The elements to be repeated are 1 through 4, not {{a}}. Where do you construct that set to pass to `rep()`?")),
+           if_matches(val, ..(res), 
+                      passif(identical(res, rep(1:4, each = 3)), "Right!"),
+                      failif(TRUE, "Something's not right!")))
 
 ```
 
@@ -91,6 +102,10 @@ c("a", "b", "c")
 rep(...., length.out = 12)
 ```
 
+```{r bunch-1-b-code-check, echo = FALSE}
+1 # chunk can't be empty
+```
+
 ```{r bunch-1-b-check, echo = FALSE}
 # For testing ...
 #USER_CODE <- "Letter <- rep(c("a","b","c"), each = 4)"
@@ -101,8 +116,9 @@ if_matches(USER_CODE, {..(res); `<-`(.(nm), .(val))},
            if_matches(val, rep(..(a), `..(nm)` = ..(arg2)),
                       failif(nm != "each", "Look at the help for `rep()` to see what arguments are available to control the pattern of repetition. (These are documented under `...`)"),
                       failif( ! identical(a, c("a", "b", "c")),  "The elements to be repeated are `\"a\", \"b\", \"c\"`, not {{a}}. Where do you construct that set to hand to `rep()`?")),
-           passif(identical(res, rep(c("a","b","c"), each = 4)), "Right!")
-      )
+           passif(identical(res, rep(c("a","b","c"), each = 4)), "Right!"),
+           failif(TRUE, "Sorry, but the result isn't right."))
+
 ```
 
 
