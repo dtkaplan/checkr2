@@ -40,13 +40,12 @@ check <- function(..., USER_CODE = NULL, tests = NULL) {
     if ( ! inherits(res, "checkr_result"))
       stop("Can only accept arguments producing checkr-result objects, e.g. if_matches().")
     if (res$action != "no pattern match") any_matches <- TRUE
-    if (res$action %in% c("fail", "Fail on error")) return(res)
-    if (res$action == "pass") last_passing_test <- res
+    # definitive result, we're done!
+    if (res$action %in% c("pass", "fail", "Fail on error")) return(res)
   }
 
   res <-
-    if (!is.null(last_passing_test)) return(last_passing_test)
-    else if (any_matches) new_checkr_result() #default
+    if (any_matches) new_checkr_result() #default
     else new_checkr_result(action = "default", message = "No matches were found.")
 
   return(res)
