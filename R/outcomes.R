@@ -16,24 +16,45 @@
 #' Within a test, the operators `==` and `!=` in a test have been augmented to deal
 #' with language objects such as names. They are translated to be equivalent to "\%same_as\%".
 
-generic_test <- function(result = c("pass", "fail", "note") ) {
-  result <- match.arg(result)
-  function(test, message = "default message") {
+generic_test <- function(pass = c("pass", "fail", "note", "ok"),
+                         fail = c("pass", "fail", "note", "ok"),
+                         default_message = "default test message" ) {
+  pass <- match.arg(pass)
+  fail <- match.arg(fail)
+  function(test, message = default_message) {
     test <- rlang::enquo(test)
-    function(task) {
-      if (task == "test") return(test)
-      if (task == "message") return(message)
-      if (task == "action") return(result)
+    function(task, res = TRUE) {
+      if (task == "test") test
+      else if (task == "message") message
+      else if (task == "action") ifelse(result, pass, fail)
     }
   }
 }
 
+#' @param test an expression returning a logical. Can use the bindings
+#' defined in the context in the expression.
+#' @param message a text string to display if test fails
+#'
+#' @examples
+#' code <- curly_to_tidy(quote({x <- 2; y <- x^2; z <- x + y}))
+#' my_line <- at(code, F == `+`)
+#' if_matches(my_line, `+`(..(x), ..(y)), req(y == 4, "use 5 for the second argument to +"))
 
 #' @export
-passif <- generic_test("pass")
+req <- function(test, message = paste("{{test_string}} failed.")) {
+  test <- rlang::enquo(test)
+  function(task, res = TRUE) {
+    if (task == "test") test
+    else if (task == "message") message
+    else if (task == "action") ifelse(res, "ok", "fail")
+  }
+}
+
 #' @export
-failif <- generic_test("fail")
+passif <- generic_test(pass="pass", fail = "ok", "Good!")
 #' @export
-noteif <- generic_test("note")
+failif <- generic_test(pass = "fail", fail = "ok", "Sorry.")
+#' @export
+noteif <- generic_test(pass = "note", fail = "ok", "Please note ...")
 
 

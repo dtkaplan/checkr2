@@ -40,7 +40,7 @@ check_blanks <- function(ex, pat, ...) {
     # there was no match to the pattern
     return(new_checkr_result(action = "fail", message = "You changed something other than the blanks. Start over from the beginning."))
   }
-  run_tests(tests, bindings)
+  run_tests(tests, bindings, ex)
 }
 
 

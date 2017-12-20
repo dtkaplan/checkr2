@@ -5,7 +5,7 @@
 #'
 #' #WE DO NOT need to export this. Just for testing
 #' @export
-run_tests <- function(test_list, bindings) {
+run_tests <- function(test_list, bindings, ex) {
   # run the tests with these bindings
   res <- new_checkr_result()
   notes <- NULL
@@ -13,23 +13,22 @@ run_tests <- function(test_list, bindings) {
   bindings[["=="]] <- function(x,y) x %same_as% y
   bindings[["!="]] <- function(x,y) ! x %same_as% y
   for (k in 1:length(test_list)) {
-    test_result <- rlang::eval_tidy(test_list[[k]], data = bindings)
-    if (inherits(test_result, "checkr_result")) {
+    test <- rlang::eval_tidy(test_list[[k]], data = bindings)
+    # will be a function if passif(), failif(), etc. but
+    # will be a checkr_result if it's something else
+    if (inherits(test, "checkr_result")) {
       # a recursive call to if_matches()
-      action  <- test_result$action
-      message <- test_result$message
+      action  <- test$action
+      message <- test$message
     } else {
       # it's a passif(), noteif(), failif()
-      the_test <- test_result("test")
+      the_test <- test("test")
+      bindings[["test_string"]] <- rlang::expr_text(quo_expr(the_test))
+      bindings[["expression_string"]] <- rlang::expr_text(quo_expr(ex))
       # Evaluate the test in the context of the bindings.
-      if (rlang::eval_tidy(the_test, data = bindings)) {
-        # the test is satisfied.
-        message <- moustache(test_result("message"), bindings)
-        action <- test_result("action")
-      } else {
-        message <- "test did not pass"
-        action <- "default"
-      }
+      test_result <- rlang::eval_tidy(the_test, data = bindings)
+      message <- moustache(test("message"), bindings)
+      action <- test("action", test_result)
     }
     # Short circuit on pass or fail.
     if (action == "note") {
@@ -41,6 +40,8 @@ run_tests <- function(test_list, bindings) {
         res$message <- paste(message, "\nNOTE:",
                              paste(notes, collapse = "\n"))
       return(res)
+    } else if (action %in% "ok") {
+        res <- new_checkr_result() # the default: it's OK
     }
   }
   res

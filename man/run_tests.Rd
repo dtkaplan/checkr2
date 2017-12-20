@@ -4,7 +4,7 @@
 \alias{run_tests}
 \title{Run test statements in the context of the bindings}
 \usage{
-run_tests(test_list, bindings)
+run_tests(test_list, bindings, ex)
 }
 \arguments{
 \item{test_list}{a list containing a set of tests}

@@ -30,10 +30,11 @@
 #'
 #'
 #' @examples
-#' ex <- quote(2+2)
-#' wrong1 <- quote(2 - 2)
-#' wrong2 <- quote(2*2)
+#' ex <- curly_to_tidy(quote(2+2))
+#' wrong1 <- curly_to_tidy(quote(2 - 2))
+#' wrong2 <- curly_to_tidy(quote(2*2))
 #' if_matches(ex, 2 + 2, passif(TRUE, "carbon copy"))
+#' if_matches(ex, 2 + ..(y), req(y != 2, "{{expression_string}} wasn't right. Second argument should not be {{y}}"))
 #' if_matches(ex, `+`(.(a), .(b)), passif(TRUE))
 #' if_matches(ex, `+`(.(a), .(b)),
 #'   passif(a==b, message = "Yes, they are equal!"))
@@ -58,24 +59,24 @@
 
 
 #' @export
-if_matches <- function(ex, keys, ...) {
+if_matches <- function(tidy_code, keys, ...) {
+  if (inherits(tidy_code, "checkr_result")) {
+    if (tidy_code$action %in% c("fail", "Fail on error")) return(tidy_code)
+    else tidy_code <- tidy_code$code
+  }
   keys <- rlang::enexpr(keys)
-  # make sure the statements, even if from parse(),
+  # make sure the patterns, even if from parse(),
   # are put into the form of a set of bracketed expressions
   keys <- as_bracketed_expressions(keys)
-  ex <- as_bracketed_expressions(ex)
   tests <- rlang::quos(...)
-  ex_env <- new.env(parent = rlang::caller_env()) # an environment in which to evaluate the expressions
-  # so that later expressions know what happened in earlier expressions.
 
-  # We'll be indexing both <keys> and <ex> from 2, since slot 1 has
+  # We'll be indexing <keys> from 2, since slot 1 has
   # the bracket `{`
 
   if (length(keys) <= 1) stop("No expressions given for argument 'keys'.")
   bindings <- list() # outside loop so tests have bindings
                      # for all previous matches.
-  for (m in 2:length(ex)) {
-
+  for (m in seq_along(tidy_code)) {
     patterns_matched <- rep(FALSE, length(keys)-1)
     for (k in 2:length(keys)) {
       # a formula whose RHS copies the environment
@@ -84,10 +85,11 @@ if_matches <- function(ex, keys, ...) {
       rlang::f_lhs(pattern) <- rlang::expr( !! keys[[k]])
 
       # Grab the list of bindings
-      simp_ex <- simplify_ex(ex[[m]])
-      rlang::eval_bare(simp_ex, env = ex_env)
+      # Handle either a simple list of quosures or the output of
+      # curly_to_tidy()
+      simp_ex <- simplify_ex(tidy_code[[m]])
       new_bindings <-
-        try(redpen::node_match(simp_ex, !!pattern, .env = ex_env),
+        try(redpen::node_match(simp_ex, !!pattern),
             silent = TRUE)
 
       # If command throws error, special fail on error
@@ -123,7 +125,7 @@ if_matches <- function(ex, keys, ...) {
   }
 
   # run the tests with these bindings
-  run_tests(tests, bindings)
+  run_tests(tests, bindings, simp_ex)
 }
 
 

@@ -4,18 +4,18 @@
 \alias{if_matches}
 \title{Handles testing given the match to a skeleton pattern}
 \usage{
-if_matches(ex, keys, ...)
+if_matches(tidy_code, keys, ...)
 }
 \arguments{
-\item{ex}{an expression or {}-bracketed set of expressions. This may
-be produced by \code{quote()}, or \code{parse(text = ...)} or some similar language
-mechanism.}
-
 \item{keys}{an R statement used for pattern matching and binding, based
 on the redpen package. This can also be a {}-bracketed set of patterns.}
 
 \item{...}{tests to apply to expressions in \code{ex}. These are typically made
 with \code{passif()}, \code{failif()}, \code{noteif()}, \code{if_matches()}, \code{fail_if_no_match()} and so on.}
+
+\item{ex}{an expression or {}-bracketed set of expressions. This may
+be produced by \code{quote()}, or \code{parse(text = ...)} or some similar language
+mechanism.}
 }
 \value{
 A checkr_test object with an action ("pass", "fail", or other) and a
@@ -41,10 +41,11 @@ return: no other tests are performed. \code{noteif()} just adds a note, without
 terminating the testing.
 }
 \examples{
-ex <- quote(2+2)
-wrong1 <- quote(2 - 2)
-wrong2 <- quote(2*2)
+ex <- curly_to_tidy(quote(2+2))
+wrong1 <- curly_to_tidy(quote(2 - 2))
+wrong2 <- curly_to_tidy(quote(2*2))
 if_matches(ex, 2 + 2, passif(TRUE, "carbon copy"))
+if_matches(ex, 2 + ..(y), req(y != 2, "{{expression_string}} wasn't right. Second argument should not be {{y}}"))
 if_matches(ex, `+`(.(a), .(b)), passif(TRUE))
 if_matches(ex, `+`(.(a), .(b)),
   passif(a==b, message = "Yes, they are equal!"))
