@@ -53,10 +53,14 @@ assigns <- function(ex, target = TRUE) {
 
 #' @export
 skip_assign <- function(ex) {
+  if ( ! is_lang(ex)) return(ex)
   top <- lang_head(ex)
   if (as.name("<-") == top) 
-    skip_assign(rlang::lang_tail(ex)[[2]])
-  else ex
+    skip_assign(
+      new_quosure(quo_expr(rlang::lang_tail(ex)[[2]]), 
+                  environment(ex)))
+  else 
+    new_quosure(quo_expr(ex), env = environment(ex)) 
 }
 
 #' @export
@@ -184,13 +188,18 @@ make_QQ_VV <- function(ex) {
 
 checkr_eval_error_result <- function(v) {
   if (inherits(v, "try-error")) {
-    message <- attr(v, "condition")
-    message <- gsub("^.*\\): ", "", message )
-    new_checkr_result(action = "Fail on error",
-                      message = paste("You gave an invalid command:", message))
+    checkr_result_on_error(v)
+    
   } else {
     v
   }
+}
+
+checkr_result_on_error <- function(v) {
+  message <- attr(v, "condition")
+  message <- gsub("^.*\\): ", "", message )
+  new_checkr_result(action = "Fail on error",
+                    message = paste("You gave an invalid command:", message))
 }
 
 

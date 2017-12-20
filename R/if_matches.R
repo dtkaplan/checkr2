@@ -59,7 +59,7 @@
 
 #' @export
 if_matches <- function(ex, keys, ...) {
-  keys <- rlang::node_cadr(rlang::enquo(keys))
+  keys <- rlang::enexpr(keys)
   # make sure the statements, even if from parse(),
   # are put into the form of a set of bracketed expressions
   keys <- as_bracketed_expressions(keys)
