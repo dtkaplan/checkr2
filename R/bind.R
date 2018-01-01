@@ -1,4 +1,4 @@
-#' Handles testing given the match to a skeleton pattern
+#' Looks for a match to patterns.
 #'
 #' Looks for a match of all the patterns to one of the expressions. If the match is found, the
 #' tests (see `...`) are evaluated in order. A pass or a fail causes an immediate
@@ -8,7 +8,10 @@
 #' If the patterns match some statement in the expressions, then the tests are evaluated
 #' using the bindings established in the pattern match.
 #'
-#' @return A checkr_test object with an action ("pass", "fail", or other) and a
+#' @aliases bind chk
+#'
+#'
+#' @return A checkr_test object with an action ("pass", "fail", or "ok") and a
 #' message to be displayed to the user.
 #'
 #' @param ex an expression or {}-bracketed set of expressions. This may
@@ -16,8 +19,12 @@
 #' mechanism.
 #' @param keys an R statement used for pattern matching and binding, based
 #' on the redpen package. This can also be a {}-bracketed set of patterns.
+#' @param fail a character string message. By default, the function
+#' will return an "ok" checkr_result if the patterns don't match. If
+#' fail is not empty, then a "fail" checkr_result will be returned with
+#' the value of fail as the message.
 #' @param ... tests to apply to expressions in `ex`. These are typically made
-#' with `passif()`, `failif()`, `noteif()`, `if_matches()`, `fail_if_no_match()` and so on.
+#' with `passif()`, `failif()`, `noteif()`, `bind()`, and so on.
 #'
 #' @return a test-result list containing a message string and a directive
 #' about whether the expressions in `ex` passed the test.
@@ -30,38 +37,44 @@
 #'
 #'
 #' @examples
-#' ex <- curly_to_tidy(quote(2+2))
-#' wrong1 <- curly_to_tidy(quote(2 - 2))
-#' wrong2 <- curly_to_tidy(quote(2*2))
-#' if_matches(ex, 2 + 2, passif(TRUE, "carbon copy"))
-#' if_matches(ex, 2 + ..(y), req(y != 2, "{{expression_string}} wasn't right. Second argument should not be {{y}}"))
-#' if_matches(ex, `+`(.(a), .(b)), passif(TRUE))
-#' if_matches(ex, `+`(.(a), .(b)),
+#' ex <- for_checkr(quote(2+2))
+#' wrong1 <- for_checkr(quote(2 - 2))
+#' wrong2 <- for_checkr(quote(2*2))
+#' bind(ex, 2 + 2, passif(TRUE, "carbon copy"))
+#' bind(ex, 3 + 3)
+#' bind(ex, 3 + 3, passif(TRUE, "not a match"))
+#' bind(ex, 3 + 3, passif(TRUE, "not a match"), fail = "not a match")
+#' bind(ex, 2 + ..(y), must(y != 2, "{{expression_string}} wasn't right. Second argument should not be {{y}}"))
+#' bind(ex, `+`(.(a), .(b)), passif(TRUE))
+#' bind(ex, `+`(.(a), .(b)),
 #'   passif(a==b, message = "Yes, they are equal!"))
-#' if_matches(ex, `+`(.(a), .(b)),
+#' bind(ex, `+`(.(a), .(b)),
 #'   passif(a==b,
 #'      message = "Yes, they are equal! In this case, they are both {{a}}."))
-#' if_matches(wrong1, {.(expr); .(f)(.(a), .(b))},
+#' bind(wrong1, {.(expr); .(f)(.(a), .(b))},
 #'   passif(f == `+`, "Right! Addition means {{f}}."),
 #'   failif(f != `+`, "In {{expr}}, you used {{f}} instead of +"))
-#' if_matches(wrong2, {.(fn)(.(a), .(b)); ..(val)},
+#' bind(wrong2, {.(fn)(.(a), .(b)); ..(val)},
 #'   noteif(val == 4, "Right overall answer: {{val}}."),
 #'   failif(fn != `+`, "You need to use the `+` function, not {{fn}}."),
 #'   noteif(val != 4, "The result should be 4, not {{val}}."),
 #'   passif(fn == `+` && val == 4 && a == b))
-#' if_matches(quote({data(mtcars); plot(mpg ~ hp, data = mtcars)}),
+#' code2 <- for_checkr(quote({data(mtcars); plot(mpg ~ hp, data = mtcars)}))
+#' bind(code2,
 #'   # note, single . with .(fn)
 #'   {..(val); .(fn)(.(formula), data = mtcars);},
 #'   passif(fn == quote(plot), "You made the plot!"))
-#' from_txt <- parse(text = "data(mtcars)\nplot(mpg ~ hp, data = mtcars)")
-#' if_matches(from_txt, {..(val); ..(fn)(.(formula), data = mtcars);},
-#'   passif(fn == `plot`, "You made the plot!"))
 
 
 #' @export
-if_matches <- function(tidy_code, keys, ...) {
+chk <- function(tidy_code, ..., fail = "") {
+  bind(tidy_code, {..(V); .(EX)}, ..., fail = fail)
+}
+
+#' @export
+bind <- function(tidy_code, keys, ..., fail = "") {
   if (inherits(tidy_code, "checkr_result")) {
-    if (tidy_code$action %in% c("fail", "Fail on error")) return(tidy_code)
+    if (tidy_code$action == "fail") return(tidy_code)
     else tidy_code <- tidy_code$code
   }
   keys <- rlang::enexpr(keys)
@@ -86,7 +99,7 @@ if_matches <- function(tidy_code, keys, ...) {
 
       # Grab the list of bindings
       # Handle either a simple list of quosures or the output of
-      # curly_to_tidy()
+      # for_checkr()
       simp_ex <- simplify_ex(tidy_code[[m]])
       new_bindings <-
         try(redpen::node_match(simp_ex, !!pattern),
@@ -96,7 +109,7 @@ if_matches <- function(tidy_code, keys, ...) {
       if (inherits(new_bindings, "try-error")) {
         return(
           new_checkr_result(
-            action = "Fail on error",
+            action = "fail",
             message = as.character(new_bindings) # holds error message
             )
           )
@@ -121,7 +134,9 @@ if_matches <- function(tidy_code, keys, ...) {
   # If none of the expressions matched all of the patterns,
   # return now.
   if ( ! all(patterns_matched)) {
-    return(new_checkr_result(action = "no pattern match"))
+    res <- if (fail == "") new_checkr_result("ok")
+    else new_checkr_result("fail", "Patterns didn't match")
+    return(res)
   }
 
   # run the tests with these bindings
@@ -165,10 +180,18 @@ as_bracketed_expressions <- function(ex) {
 # Utility for simplifying expressions that are gratuitously wrapped in
 # parentheses.
 # NOTE: Any expression like (2+2+2) doesn't need the parens. Expressions
-# like (2 + 2)*4 need the parens, but in fact the root of the parse tree will
-# be * rather than (.
+# like (2 + 2)*4 need the parens, but the root of the parse tree will
+# be * rather than (. So get rid of extraneous parens.
 simplify_ex <- function(ex) {
-  if (inherits(ex, "(")) ex[[2]] # the contents of the paren
+  if (rlang::is_quosure(ex)) {
+    exx <- rlang::quo_expr(ex)
+    res <- if (inherits(exx, "(")) {
+      rlang::new_quosure(simplify_ex(exx), env = environment(ex))
+    } else {
+      ex
+    }
+    return(res)
+  } else if (inherits(ex, "(")) simplify_ex(ex[[2]]) # the contents of the paren
   else ex
 }
 

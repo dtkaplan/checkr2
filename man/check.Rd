@@ -2,7 +2,7 @@
 % Please edit documentation in R/check.R
 \name{check}
 \alias{check}
-\title{Organize pattern matching possibilities}
+\title{DO WE NEED THIS? Organize pattern matching possibilities}
 \usage{
 check(..., USER_CODE = NULL, tests = NULL)
 }
@@ -17,6 +17,7 @@ be set automatically by those interfaces.}
 hand off the tests that were setup.}
 }
 \description{
+NOW THE TESTS ARE WRITTEN AS A LOGICAL SEQUENCE
 Use this to organize pattern matching outside of a system
 such as learnr. For instance, when testing statements, you can use
 check.
@@ -25,13 +26,13 @@ check.
 ex <- quote(sqrt(16))
 ex <- quote(3 + 3)
 check(
-  if_matches(ex, {..(val); .(fn)(.)},
+  bind(ex, {..(val); .(fn)(.)},
     failif(val != 4, "Wrong result."),
     failif(fn \%not_same_as\% `sqrt`,
            "You should be taking square-root, not {{fn}}."),
     passif(TRUE, "The square root calculation was correct!")
     ),
-  if_matches(ex, {.(fn)(.(a), .(b))},
+  bind(ex, {.(fn)(.(a), .(b))},
     failif(a != b, "Arguments should be equal."),
     passif(fn \%same_as\% `+`, "Right!"))
 )

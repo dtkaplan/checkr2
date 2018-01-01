@@ -2,6 +2,8 @@
 % Please edit documentation in R/comparisons.R
 \name{\%same_as\%}
 \alias{\%same_as\%}
+\alias{\%not_same_as\%}
+\alias{\%calls\%}
 \title{Comparison operators for bindings}
 \usage{
 e1 \%same_as\% e2

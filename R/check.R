@@ -1,5 +1,6 @@
-#' Organize pattern matching possibilities
+#' DO WE NEED THIS? Organize pattern matching possibilities
 #'
+#' NOW THE TESTS ARE WRITTEN AS A LOGICAL SEQUENCE
 #' Use this to organize pattern matching outside of a system
 #' such as learnr. For instance, when testing statements, you can use
 #' check.
@@ -17,13 +18,13 @@
 #' ex <- quote(sqrt(16))
 #' ex <- quote(3 + 3)
 #' check(
-#'   if_matches(ex, {..(val); .(fn)(.)},
+#'   bind(ex, {..(val); .(fn)(.)},
 #'     failif(val != 4, "Wrong result."),
 #'     failif(fn %not_same_as% `sqrt`,
 #'            "You should be taking square-root, not {{fn}}."),
 #'     passif(TRUE, "The square root calculation was correct!")
 #'     ),
-#'   if_matches(ex, {.(fn)(.(a), .(b))},
+#'   bind(ex, {.(fn)(.(a), .(b))},
 #'     failif(a != b, "Arguments should be equal."),
 #'     passif(fn %same_as% `+`, "Right!"))
 #' )
@@ -41,23 +42,13 @@ check <- function(..., USER_CODE = NULL, tests = NULL) {
       stop("Can only accept arguments producing checkr-result objects, e.g. if_matches().")
     if (res$action != "no pattern match") any_matches <- TRUE
     # definitive result, we're done!
-    if (res$action %in% c("pass", "fail", "Fail on error")) return(res)
+    if (res$action %in% c("pass", "fail")) return(res)
   }
 
   res <-
     if (any_matches) new_checkr_result() #default
-    else new_checkr_result(action = "default", message = "No matches were found.")
+    else new_checkr_result(action = "ok", message = "No matches were found.")
 
   return(res)
 }
 
-new_checkr_result <- function(action = "default", message = "") {
-  res <- list(action = action, message = message)
-  class(res) <- "checkr_result"
-
-  res
-}
-#' @export
-print.checkr_result <- function(x, ...) {
-  cat(paste0("Test result ", x$action, " with message \"", x$message, "\"\n"))
-}

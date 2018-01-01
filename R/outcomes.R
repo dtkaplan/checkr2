@@ -4,7 +4,7 @@
 #' The test itself will be evaluated in `run_tests()`, not in these functions.
 #'
 #' @rdname passif
-#' @aliases passif failif noteif
+#' @aliases req passif failif noteif
 #'
 #' @usage passif(test, message)
 #' @param test an expression written in terms of values found
@@ -16,37 +16,40 @@
 #' Within a test, the operators `==` and `!=` in a test have been augmented to deal
 #' with language objects such as names. They are translated to be equivalent to "\%same_as\%".
 
-generic_test <- function(pass = c("pass", "fail", "note", "ok"),
-                         fail = c("pass", "fail", "note", "ok"),
-                         default_message = "default test message" ) {
-  pass <- match.arg(pass)
-  fail <- match.arg(fail)
-  function(test, message = default_message) {
-    test <- rlang::enquo(test)
-    function(task, res = TRUE) {
-      if (task == "test") test
-      else if (task == "message") message
-      else if (task == "action") ifelse(result, pass, fail)
-    }
-  }
-}
 
 #' @param test an expression returning a logical. Can use the bindings
 #' defined in the context in the expression.
 #' @param message a text string to display if test fails
 #'
 #' @examples
-#' code <- curly_to_tidy(quote({x <- 2; y <- x^2; z <- x + y}))
-#' my_line <- at(code, F == `+`)
-#' if_matches(my_line, `+`(..(x), ..(y)), req(y == 4, "use 5 for the second argument to +"))
+#' code <- for_checkr(quote({x <- 2; y <- x^2; z <- x + y}))
+#' my_line <- line_at(code, F == `+`)
+#' if_matches(my_line, `+`(..(x), ..(y)), must(y == 4, "use 5 for the second argument to +"))
 
 #' @export
-req <- function(test, message = paste("{{test_string}} failed.")) {
+must <- function(test, message = paste("{{test_string}} failed.")) {
   test <- rlang::enquo(test)
-  function(task, res = TRUE) {
+  function(task, res) {
     if (task == "test") test
-    else if (task == "message") message
+    else if (task == "message") ifelse(res, "", message)
     else if (task == "action") ifelse(res, "ok", "fail")
+  }
+}
+
+
+
+generic_test <- function(pass = c("pass", "fail", "ok"),
+                         fail = c("pass", "fail", "ok"),
+                         default_message = "default test message" ) {
+  pass <- match.arg(pass)
+  fail <- match.arg(fail)
+  function(test, message = default_message) {
+    test <- rlang::enquo(test)
+    function(task, res) {
+      if (task == "test") test
+      else if (task == "message") ifelse(res, message, "")
+      else if (task == "action") ifelse(res, pass, fail)
+    }
   }
 }
 
@@ -55,6 +58,5 @@ passif <- generic_test(pass="pass", fail = "ok", "Good!")
 #' @export
 failif <- generic_test(pass = "fail", fail = "ok", "Sorry.")
 #' @export
-noteif <- generic_test(pass = "note", fail = "ok", "Please note ...")
-
+noteif <- generic_test(pass = "ok", fail = "ok", "Just a note ...")
 

@@ -16,12 +16,11 @@
 #'
 #' @examples
 #' # as it would be called from the learnr system ...
-#' check_for_learnr(label = "first", user_code = "sin(pi)",
-#'   check_code =
-#'   'if_matches(USER_CODE, .(fn)(..(a)), passif(fn %same_as% as.name("sin") &&
-#'   a == pi, message="Right-o!"))')
+#' check_for_learnr(envir_result = 3, label = "first", user_code = "sin(pi)",
+#'   check_code = 'ex <- for_checkr(USER_CODE); t1 <- line_at(ex, F == sin, fail="Please use the sin function.");a1 <- arg_number(t1, 1); chk(a1, passif(V == pi, "Right-oh!"))'
+#' )
 #'
-#'
+#' #'
 #' @export
 check_for_learnr <-
   function(label=NULL,
@@ -72,14 +71,17 @@ check_for_learnr <-
   # If we got here ...
   # The user code parsed successfully and, if there is a -check-code chunk,
   # it evaluated successfully. Now see if it passes the exercise author's tests.
-  res <- check(USER_CODE = user_code,
-               tests = parse(text = check_code))
+  # res <- check(USER_CODE = user_code,
+  #              tests = parse(text = check_code))
+  # above is from original system
+  parsed_check_code <- parse(text = check_code)
+  res <- eval(parsed_check_code, envir = list(USER_CODE = user_code))
 
   # turn the result into a value suitable for learnr
   feedback_type <- switch(res$action,
                           "pass" = "success",
                           "fail" = "error",
-                          "no pattern match" = "warning")
+                          "ok" = "warning")
   final <- list(correct = (res$action == "pass"),
        message = res$message,
        type = feedback_type,

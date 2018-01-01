@@ -51,20 +51,30 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <p><em>Here’s a simple exercise with an empty code chunk provided for entering the answer.</em></p>
 <p>Write the R code to add two plus two:</p>
 <div class="tutorial-exercise" data-label="two-plus-two" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
-<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.checker":["function (label = NULL, user_code = NULL, solution_code = NULL, ","    check_code = NULL, envir_result = NULL, evaluate_result = NULL, ","    ..., debug = FALSE) ","{","    if (debug) {","        save_file_name <- sprintf(\"~/Downloads/CheckR/chunk-%s.rds\", ","            label)","        saveRDS(list(label = label, user_code = user_code, solution_code = solution_code, ","            check_code = check_code, envir = envir_result, evaluate_result = evaluate_result), ","            file = save_file_name)","    }","    if (is.null(envir_result)) {","        res <- pre_check(user_code, solution_code)","        if (!res$correct) {","            return(list(correct = FALSE, type = \"error\", location = \"prepend\", ","                message = res$message))","        }","        else {","            return(TRUE)","        }","    }","    cat(\"Will we check parsing?\\n\")","    if (!is.null(envir_result)) {","        cat(\"We're checking it now.\\n\")","        res <- parse_check(user_code)","        if (!res$correct) {","            return(list(correct = FALSE, type = \"error\", location = \"prepend\", ","                message = res$message))","        }","    }","    cat(\"Checking the statement that passed parsing.\\n\")","    res <- check(USER_CODE = user_code, tests = parse(text = check_code))","    cat(\"check result was\", capture.output(res), \"\\n\")","    feedback_type <- switch(res$action, pass = \"success\", fail = \"error\", ","        `no pattern match` = \"warning\")","    final <- list(correct = (res$action == \"pass\"), message = res$message, ","        type = feedback_type, location = \"prepend\")","    final","}"]}</script>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.checker":["function (label = NULL, user_code = NULL, solution_code = NULL, ","    check_code = NULL, envir_result = NULL, evaluate_result = NULL, ","    ..., debug = FALSE) ","{","    if (debug) {","        save_file_name <- sprintf(\"~/Downloads/CheckR/chunk-%s.rds\", ","            label)","        saveRDS(list(label = label, user_code = user_code, solution_code = solution_code, ","            check_code = check_code, envir = envir_result, evaluate_result = evaluate_result), ","            file = save_file_name)","    }","    if (is.null(envir_result)) {","        res <- pre_check(user_code, solution_code)","        if (!res$correct) {","            return(list(correct = FALSE, type = \"error\", location = \"prepend\", ","                message = res$message))","        }","        else {","            return(TRUE)","        }","    }","    if (!is.null(envir_result)) {","        cat(\"We're checking it now.\\n\")","        res <- parse_check(user_code)","        if (!res$correct) {","            return(list(correct = FALSE, type = \"error\", location = \"prepend\", ","                message = res$message))","        }","    }","    parsed_check_code <- parse(text = check_code)","    res <- eval(parsed_check_code, envir = list(USER_CODE = user_code))","    feedback_type <- switch(res$action, pass = \"success\", fail = \"error\", ","        ok = \"warning\")","    final <- list(correct = (res$action == \"pass\"), message = res$message, ","        type = feedback_type, location = \"prepend\")","    final","}"]}</script>
 </div>
 <div class="tutorial-exercise-support" data-label="two-plus-two-code-check" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
 <pre class="text"><code>1 # To trigger pre-check, this chunk must have something in it.</code></pre>
 </div>
 <div class="tutorial-exercise-support" data-label="two-plus-two-check" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
-<pre class="text"><code>if_matches(USER_CODE, {..(val); .(fn)(..(a), ..(b))}, 
-           passif(fn == as.name(&quot;+&quot;) &amp;&amp; a == b, &quot;It worked!&quot;),
-           failif(fn != as.name(&quot;+&quot;), &quot;Use +, not {{fn}}.&quot;),
+<pre class="text"><code>USER_CODE &lt;- &quot;(2 + 2)&quot;
+CODE &lt;- for_checkr(USER_CODE)
+L1 &lt;- at(CODE, F == `+`, fail = &quot;Use +, not {{F}}.&quot;)
+t1 &lt;- bind(L1, {..(val); .(fn)(..(a), ..(b))}, 
+           failif(a != b, &quot;The two arguments should be the same. You have {{a}} and {{b}}.&quot;),
            failif(a != 2, &quot;Sorry. The first argument must be 2.&quot;),
            failif(b != 2, &quot;No luck. The second argument should also be 2.&quot;)
 )
-if_matches(USER_CODE, .(fn)(.), failif(TRUE, &quot;{{fn}}() is a function of a single argument. You want a function of two arguments that adds its arguments.&quot;) )
-if_matches(USER_CODE, ..(val), failif(val != 4, &quot;Couldn&#39;t see any matches.&quot;))</code></pre>
+return(t1)
+t2 &lt;- chk(L1, failif(n_args(EX) != 2, &quot;{{func_of(EX)}}() is a function of {{n_args(EX)}} argument(s). You want a function of two arguments that adds its arguments.{{EX}} gives {{V}}&quot;) )
+
+t3 &lt;- chk(L1, passif(V == 4, &quot;Good&quot;)) # there must be a success marker
+
+# Overall result
+t1 %and% t2 %and% t3
+
+# check_for_learnr(envir_result = 3, label = &quot;first&quot;, user_code = &quot;2+2&quot;,
+#    check_code = expr(text))</code></pre>
 </div>
 </div>
 <div id="section-using-rep" class="section level3">
@@ -72,7 +82,7 @@ if_matches(USER_CODE, ..(val), failif(val != 4, &quot;Couldn&#39;t see any match
 <ol style="list-style-type: lower-alpha">
 <li>Create a vector named <code>Id</code> that has contents <code>1 1 1 2 2 2 3 3 3 4 4 4</code>. Use the <code>rep()</code> function to do this.
 <div class="tutorial-exercise" data-label="bunch-1-a" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
-<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.checker":["function (label = NULL, user_code = NULL, solution_code = NULL, ","    check_code = NULL, envir_result = NULL, evaluate_result = NULL, ","    ..., debug = FALSE) ","{","    if (debug) {","        save_file_name <- sprintf(\"~/Downloads/CheckR/chunk-%s.rds\", ","            label)","        saveRDS(list(label = label, user_code = user_code, solution_code = solution_code, ","            check_code = check_code, envir = envir_result, evaluate_result = evaluate_result), ","            file = save_file_name)","    }","    if (is.null(envir_result)) {","        res <- pre_check(user_code, solution_code)","        if (!res$correct) {","            return(list(correct = FALSE, type = \"error\", location = \"prepend\", ","                message = res$message))","        }","        else {","            return(TRUE)","        }","    }","    cat(\"Will we check parsing?\\n\")","    if (!is.null(envir_result)) {","        cat(\"We're checking it now.\\n\")","        res <- parse_check(user_code)","        if (!res$correct) {","            return(list(correct = FALSE, type = \"error\", location = \"prepend\", ","                message = res$message))","        }","    }","    cat(\"Checking the statement that passed parsing.\\n\")","    res <- check(USER_CODE = user_code, tests = parse(text = check_code))","    cat(\"check result was\", capture.output(res), \"\\n\")","    feedback_type <- switch(res$action, pass = \"success\", fail = \"error\", ","        `no pattern match` = \"warning\")","    final <- list(correct = (res$action == \"pass\"), message = res$message, ","        type = feedback_type, location = \"prepend\")","    final","}"]}</script>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.checker":["function (label = NULL, user_code = NULL, solution_code = NULL, ","    check_code = NULL, envir_result = NULL, evaluate_result = NULL, ","    ..., debug = FALSE) ","{","    if (debug) {","        save_file_name <- sprintf(\"~/Downloads/CheckR/chunk-%s.rds\", ","            label)","        saveRDS(list(label = label, user_code = user_code, solution_code = solution_code, ","            check_code = check_code, envir = envir_result, evaluate_result = evaluate_result), ","            file = save_file_name)","    }","    if (is.null(envir_result)) {","        res <- pre_check(user_code, solution_code)","        if (!res$correct) {","            return(list(correct = FALSE, type = \"error\", location = \"prepend\", ","                message = res$message))","        }","        else {","            return(TRUE)","        }","    }","    if (!is.null(envir_result)) {","        cat(\"We're checking it now.\\n\")","        res <- parse_check(user_code)","        if (!res$correct) {","            return(list(correct = FALSE, type = \"error\", location = \"prepend\", ","                message = res$message))","        }","    }","    parsed_check_code <- parse(text = check_code)","    res <- eval(parsed_check_code, envir = list(USER_CODE = user_code))","    feedback_type <- switch(res$action, pass = \"success\", fail = \"error\", ","        ok = \"warning\")","    final <- list(correct = (res$action == \"pass\"), message = res$message, ","        type = feedback_type, location = \"prepend\")","    final","}"]}</script>
 </div></li>
 </ol>
 <div class="tutorial-exercise-support" data-label="bunch-1-a-solution" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
@@ -91,24 +101,24 @@ if_matches(USER_CODE, ..(val), failif(val != 4, &quot;Couldn&#39;t see any match
 <pre class="text"><code># For testing ...
 #USER_CODE &lt;- quote(Id &lt;- c(1,1,1,2,2,2,3,3,3,4,4,4))
 #USER_CODE &lt;- &quot;Id &lt;- rep(1:3, each = 3)&quot;
-if_matches(USER_CODE, &quot;.(fn)(...)&quot;,
+bind(USER_CODE, &quot;.(fn)(...)&quot;,
            failif(fn != quote(`&lt;-`), &quot;Remember to store the result under the name `Id`.&quot;))
-if_matches(USER_CODE, {..(res); `&lt;-`(.(nm), .(val))},
+bind(USER_CODE, {..(res); `&lt;-`(.(nm), .(val))},
            failif(nm != quote(Id), &quot;The object should be called `Id`, not &#39;{{nm}}&#39;.&quot;),
-           if_matches(val, c(1, 1, 1, ...),
+           bind(val, c(1, 1, 1, ...),
                       failif(TRUE, &quot;That&#39;s not using `rep()`!&quot;)),
-           if_matches(val, rep(..(a), `..(nm)` = ..(arg2)),
+           bind(val, rep(..(a), `..(nm)` = ..(arg2)),
                       failif(nm != &quot;each&quot;, &quot;Look at the help for `rep()` to see what arguments are available to control the pattern of repetition. (These are documented under `...`)&quot;),
                       failif(arg2 != 3, &quot;How many times do you need to repeat each element?&quot;),
                       failif(!identical(a, 1:4), &quot;The elements to be repeated are 1 through 4, not {{a}}. Where do you construct that set to pass to `rep()`?&quot;)),
-           if_matches(val, ..(res), 
+           bind(val, ..(res), 
                       passif(identical(res, rep(1:4, each = 3)), &quot;Right!&quot;),
                       failif(TRUE, &quot;Something&#39;s not right!&quot;)))</code></pre>
 </div>
 <ol start="2" style="list-style-type: lower-alpha">
 <li>Create a vector named <code>Letter</code> that contains <code>&quot;a&quot; &quot;b&quot; &quot;c&quot; &quot;a&quot; &quot;b&quot; &quot;c&quot; &quot;a&quot; &quot;b&quot; &quot;c&quot; &quot;a&quot; &quot;b&quot; &quot;c&quot;</code>
 <div class="tutorial-exercise" data-label="bunch-1-b" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
-<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.checker":["function (label = NULL, user_code = NULL, solution_code = NULL, ","    check_code = NULL, envir_result = NULL, evaluate_result = NULL, ","    ..., debug = FALSE) ","{","    if (debug) {","        save_file_name <- sprintf(\"~/Downloads/CheckR/chunk-%s.rds\", ","            label)","        saveRDS(list(label = label, user_code = user_code, solution_code = solution_code, ","            check_code = check_code, envir = envir_result, evaluate_result = evaluate_result), ","            file = save_file_name)","    }","    if (is.null(envir_result)) {","        res <- pre_check(user_code, solution_code)","        if (!res$correct) {","            return(list(correct = FALSE, type = \"error\", location = \"prepend\", ","                message = res$message))","        }","        else {","            return(TRUE)","        }","    }","    cat(\"Will we check parsing?\\n\")","    if (!is.null(envir_result)) {","        cat(\"We're checking it now.\\n\")","        res <- parse_check(user_code)","        if (!res$correct) {","            return(list(correct = FALSE, type = \"error\", location = \"prepend\", ","                message = res$message))","        }","    }","    cat(\"Checking the statement that passed parsing.\\n\")","    res <- check(USER_CODE = user_code, tests = parse(text = check_code))","    cat(\"check result was\", capture.output(res), \"\\n\")","    feedback_type <- switch(res$action, pass = \"success\", fail = \"error\", ","        `no pattern match` = \"warning\")","    final <- list(correct = (res$action == \"pass\"), message = res$message, ","        type = feedback_type, location = \"prepend\")","    final","}"]}</script>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.checker":["function (label = NULL, user_code = NULL, solution_code = NULL, ","    check_code = NULL, envir_result = NULL, evaluate_result = NULL, ","    ..., debug = FALSE) ","{","    if (debug) {","        save_file_name <- sprintf(\"~/Downloads/CheckR/chunk-%s.rds\", ","            label)","        saveRDS(list(label = label, user_code = user_code, solution_code = solution_code, ","            check_code = check_code, envir = envir_result, evaluate_result = evaluate_result), ","            file = save_file_name)","    }","    if (is.null(envir_result)) {","        res <- pre_check(user_code, solution_code)","        if (!res$correct) {","            return(list(correct = FALSE, type = \"error\", location = \"prepend\", ","                message = res$message))","        }","        else {","            return(TRUE)","        }","    }","    if (!is.null(envir_result)) {","        cat(\"We're checking it now.\\n\")","        res <- parse_check(user_code)","        if (!res$correct) {","            return(list(correct = FALSE, type = \"error\", location = \"prepend\", ","                message = res$message))","        }","    }","    parsed_check_code <- parse(text = check_code)","    res <- eval(parsed_check_code, envir = list(USER_CODE = user_code))","    feedback_type <- switch(res$action, pass = \"success\", fail = \"error\", ","        ok = \"warning\")","    final <- list(correct = (res$action == \"pass\"), message = res$message, ","        type = feedback_type, location = \"prepend\")","    final","}"]}</script>
 </div></li>
 </ol>
 <div class="tutorial-exercise-support" data-label="bunch-1-b-solution" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
@@ -126,11 +136,11 @@ if_matches(USER_CODE, {..(res); `&lt;-`(.(nm), .(val))},
 <div class="tutorial-exercise-support" data-label="bunch-1-b-check" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
 <pre class="text"><code># For testing ...
 #USER_CODE &lt;- &quot;Letter &lt;- rep(c(&quot;a&quot;,&quot;b&quot;,&quot;c&quot;), each = 4)&quot;
-if_matches(USER_CODE, &quot;.(fn)(...)&quot;,
+bind(USER_CODE, &quot;.(fn)(...)&quot;,
            failif(fn != quote(`&lt;-`), &quot;Remember to store the result under the name `Letter`.&quot;))
-if_matches(USER_CODE, {..(res); `&lt;-`(.(nm), .(val))},
+bind(USER_CODE, {..(res); `&lt;-`(.(nm), .(val))},
            failif(nm != quote(Letter), &quot;The object should be called `Letter`, not &#39;{{nm}}&#39;.&quot;),
-           if_matches(val, rep(..(a), `..(nm)` = ..(arg2)),
+           bind(val, rep(..(a), `..(nm)` = ..(arg2)),
                       failif(nm != &quot;each&quot;, &quot;Look at the help for `rep()` to see what arguments are available to control the pattern of repetition. (These are documented under `...`)&quot;),
                       failif( ! identical(a, c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;)),  &quot;The elements to be repeated are `\&quot;a\&quot;, \&quot;b\&quot;, \&quot;c\&quot;`, not {{a}}. Where do you construct that set to hand to `rep()`?&quot;)),
            passif(identical(res, rep(c(&quot;a&quot;,&quot;b&quot;,&quot;c&quot;), each = 4)), &quot;Right!&quot;),
@@ -145,7 +155,7 @@ if_matches(USER_CODE, {..(res); `&lt;-`(.(nm), .(val))},
 </ol>
 <p>Once you have constructed <code>x</code> and <code>y</code>, make a data frame called <code>df</code> that contains <code>x</code>, <code>y</code>, <code>Id</code> as columns. The variable names should be <code>x</code>, <code>y</code>, and <code>Id</code>.</p>
 <div class="tutorial-exercise" data-label="bunch-1-c" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
-<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.checker":["function (label = NULL, user_code = NULL, solution_code = NULL, ","    check_code = NULL, envir_result = NULL, evaluate_result = NULL, ","    ..., debug = FALSE) ","{","    if (debug) {","        save_file_name <- sprintf(\"~/Downloads/CheckR/chunk-%s.rds\", ","            label)","        saveRDS(list(label = label, user_code = user_code, solution_code = solution_code, ","            check_code = check_code, envir = envir_result, evaluate_result = evaluate_result), ","            file = save_file_name)","    }","    if (is.null(envir_result)) {","        res <- pre_check(user_code, solution_code)","        if (!res$correct) {","            return(list(correct = FALSE, type = \"error\", location = \"prepend\", ","                message = res$message))","        }","        else {","            return(TRUE)","        }","    }","    cat(\"Will we check parsing?\\n\")","    if (!is.null(envir_result)) {","        cat(\"We're checking it now.\\n\")","        res <- parse_check(user_code)","        if (!res$correct) {","            return(list(correct = FALSE, type = \"error\", location = \"prepend\", ","                message = res$message))","        }","    }","    cat(\"Checking the statement that passed parsing.\\n\")","    res <- check(USER_CODE = user_code, tests = parse(text = check_code))","    cat(\"check result was\", capture.output(res), \"\\n\")","    feedback_type <- switch(res$action, pass = \"success\", fail = \"error\", ","        `no pattern match` = \"warning\")","    final <- list(correct = (res$action == \"pass\"), message = res$message, ","        type = feedback_type, location = \"prepend\")","    final","}"]}</script>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.checker":["function (label = NULL, user_code = NULL, solution_code = NULL, ","    check_code = NULL, envir_result = NULL, evaluate_result = NULL, ","    ..., debug = FALSE) ","{","    if (debug) {","        save_file_name <- sprintf(\"~/Downloads/CheckR/chunk-%s.rds\", ","            label)","        saveRDS(list(label = label, user_code = user_code, solution_code = solution_code, ","            check_code = check_code, envir = envir_result, evaluate_result = evaluate_result), ","            file = save_file_name)","    }","    if (is.null(envir_result)) {","        res <- pre_check(user_code, solution_code)","        if (!res$correct) {","            return(list(correct = FALSE, type = \"error\", location = \"prepend\", ","                message = res$message))","        }","        else {","            return(TRUE)","        }","    }","    if (!is.null(envir_result)) {","        cat(\"We're checking it now.\\n\")","        res <- parse_check(user_code)","        if (!res$correct) {","            return(list(correct = FALSE, type = \"error\", location = \"prepend\", ","                message = res$message))","        }","    }","    parsed_check_code <- parse(text = check_code)","    res <- eval(parsed_check_code, envir = list(USER_CODE = user_code))","    feedback_type <- switch(res$action, pass = \"success\", fail = \"error\", ","        ok = \"warning\")","    final <- list(correct = (res$action == \"pass\"), message = res$message, ","        type = feedback_type, location = \"prepend\")","    final","}"]}</script>
 </div>
 <div class="tutorial-exercise-support" data-label="bunch-1-c-solution" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
 <pre class="text"><code>Id &lt;- rep(1:4, each = 3)
@@ -161,22 +171,22 @@ df &lt;- data.frame(x = x, y = y, Id = Id)</code></pre>
 # })
 
 fail_if_no_match(USER_CODE, Id &lt;- ., &quot;You didn&#39;t create `Id` as requested.&quot;)
-if_matches(USER_CODE, `&lt;-`(Id, ..(val)),
+bind(USER_CODE, `&lt;-`(Id, ..(val)),
            failif( ! identical(val, rep(1:4, each = 3)), 
                    &quot;You didn&#39;t make `Id` correctly. &quot;))
 fail_if_no_match(USER_CODE, x &lt;- ., &quot;You didn&#39;t create `x` as requested.&quot;)
-if_matches(USER_CODE, `&lt;-`(x, ..(val)),
+bind(USER_CODE, `&lt;-`(x, ..(val)),
            failif( ! identical(val, seq(1, 43, length = 12)),
                    &quot;You didn&#39;t make `x` correctly.&quot;))
 fail_if_no_match(USER_CODE, y &lt;- ., &quot;You didn&#39;t create `y` as requested.&quot;)
-if_matches(USER_CODE, `&lt;-`(y, ..(val)),
+bind(USER_CODE, `&lt;-`(y, ..(val)),
            failif( ! identical(val, seq(-20, 0, length = 12)),
                    &quot;You didn&#39;t make `y` correctly.&quot;))
 fail_if_no_match(USER_CODE, df &lt;- ., &quot;You didn&#39;t create `df` as requested.&quot;)
-if_matches(USER_CODE, `&lt;-`(df, ..(df)),
+bind(USER_CODE, `&lt;-`(df, ..(df)),
            failif( ncol(df) != 3, &quot;The data frame `df` should have three columns, not {{ncol(df)}}.&quot;),
            failif( ! setequal(names(df), c(&quot;Id&quot;, &quot;x&quot;, &quot;y&quot;)), &quot;The names of the data frame variables should be `Id`, `x`, `y`. You&#39;ve got {{paste(paste0(&#39;`&#39;, names(df), &#39;`&#39;), collapse=&#39;, &#39;)}}.&quot;))
-if_matches(USER_CODE, `&lt;-`(df, .(fn)(...)),
+bind(USER_CODE, `&lt;-`(df, .(fn)(...)),
            failif(fn != quote(data.frame), &quot;Use the `data.frame()` function to make the data frame&quot;))
            
 pass_anyways()</code></pre>

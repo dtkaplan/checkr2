@@ -41,11 +41,11 @@ grab_bindings <- function(ex, keys,
         try(redpen::node_match(simplify_ex(ex[[m]]), !!pattern),
             silent = TRUE)
 
-      # If command throws error, special fail on error
+      # If command throws error, fail on error
       if (inherits(new_bindings, "try-error")) {
         return(
           new_checkr_result(
-            action = "Fail on error",
+            action = "fail",
             message = as.character(new_bindings) # holds error message
           )
         )

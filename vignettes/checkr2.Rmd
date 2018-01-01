@@ -18,15 +18,15 @@ knitr::opts_chunk$set(
 )
 ```
 
-To help meet the demand for R-related training, various *interactive tutorial systems* have been developed. These include [Swirl](http://swirlstats.com/), [DataComp.com](http://DataCamp.com), and the Shiny-based system introduced by RStudio: [`learnr`](http://github.com/rstudio/learnr). In each of these systems, a problem is posed to the student, who has an opportunity to construct R commands as a solution. The R commands are then passed to an evaluation system.
-
-The `checkr2` package provides such an evaluation system that provides both summative and formative feedback and, at the instructor's discretion, logs student submissions for assigning credit and to support looking for common patterns of misconception in student answers.
+Students are often asked to submit R code. The `checkr2` package provides facilities to give some feedback on their work.
 
 "Summative feedback," in the jargon of education, means telling whether the student was right or wrong; whether the submitted work satisfied the requirements. In computer programming, summative feedback can be based on whether a correct result was computed, whether a function works as required, and so on. `Checkr2` provides simple mechanisms for comparing the quantities computed by the student submission to known values.
 
 "Formative feedback" attempts to help the student develop a better submission. This is a more subtle situation, since good feedback must involve understanding of how student's think about the problem, typical patterns in student answers, and the variety of ways that the problem can be approached. `Checkr2` provides facilities for looking within the student's code for functions and their arguments, for checking intermediate results, and to look for specific mistake patterns.
 
-Readers may also want to check out the system for *[submission correctness tests](https://www.datacamp.com/community/blog/submission-correctness-testing-in-datacamp-datacamp-part-i#gs.vuTG8Xw)* provided by DataCamp.
+The `checkr2` package provides such an evaluation system that provides both summative and formative feedback and, at the instructor's discretion, logs student submissions for assigning credit and to support looking for common patterns of misconception in student answers.
+
+`Checkr2` can be used in a stand-alone mode or as embedded in a `learnr` tutorial. 
 
 ## A first example
 
@@ -41,38 +41,94 @@ In evaluating a student's submission for this problem, there are a number of thi
 
 1. Is the numerical value of the result correct? Here, that would be about `r round(15 * sin(53*pi/180), 2)`. 
 
-Of course, if the value computed by the student's submission is not correct, then we know the submission itself is not right. But we don't know *why* it's not right. And knowing why it's not right is important if we want to provide formative feedback to the student. So it would also be good to know:
+Of course, if the value computed by the student's submission is not correct, then we know the submission itself is not right. But we don't know *why* it's not right. Knowing why it's not right is important if we want to provide formative feedback to the student. In providing such formative feedback it would also be good to know:
 
-2. Is the $\sin$ function being used?
+2. Is the $\sin$ function being used? 
 3. Is 53 the argument to $\sin$? If not, we can remind the student to convert the angle to radians.
 4. Is multiplication by a conversion factor being used, and is the conversion factor correct?
 
-Answering questions (2) through (4) requires that the student's submission be taken apart: what's the function and what's the argument to the function. In order to accomplish this, we'll use a pattern language. One possibility would be "regular expressions" of the sort supported by `grep()`, `gsub()`, and so on. However, regular expressions do not know about the required syntax of R statements. For instance, "function arguments are enclosed in parentheses and multiple arguments are separated by commas."
+Answering questions (2) through (4) requires that the student's submission be taken apart: what's the function and what's the argument to the function. `Checkr2` provides a handful of functions that do this in different ways. 
 
-The `redpen` package provides a pattern language that knows about R syntax. This allows us to specify patterns in a way that resembles R commands themselves. In particular, every pattern statement in `redpen` must be a syntactically correct R expression. As a trivial example, the pattern `15 * sin(53 * pi / 180)` describes an exact match to a specific correct answer. 
+### Submitting what?
 
-For demonstration in this vignette, let's stipulate that a submission will be provided to the checking system in the form of a character string containing an R command, e.g.
-```{r}
-submission <- "15 * sin(53 * pi / 180)"
-```
+In a tutorial system like `learnr`, the system itself does the work of collecting the student's submission and handing it off to the checking statements. `Checkr` is written so that it can be used both within a system like `learnr` and also in a stand-alone way. One advantage of this is that you can develop and test your checking statements systematically before deploying them in a tutorial. 
 
-To determine if the submission is correct, use the `if_matches()` function.
-```{r}
-if_matches(submission, 15 * sin(53 * pi / 180), passif(TRUE, "Good job!"))
-```
-
-But there are other possible correct answers, e.g.
+The document you are reading is a vignette, not a tutorial. To play the role of the tutorial system, in this tutorial we'll write student submissions as "quoted" commands. (We'll say more about `quote()` later on. It's an ordinary base R command, albeit one that few R users  encounter.)
 
 ```{r}
-submission_2 <- "theta <- 53 * pi/180; r <- 15; r*sin(theta)"
-submission_3 <- "ang <- pi * (53 / 180); sin(ang) * 15"
+USER_CODE <- quote(15 * sin(53 * pi / 180))
 ```
 
-Since it will be difficult to list every possible statement that produces a correct answer, it's important that the pattern language automatically handle trivial permutations of the correct command, unnecessary grouping parentheses, unconventional whitespace, etc.
+The first task for `checkr` is to parse the submission. The `for_checkr()` function does this along with some additional processing for when there are multiple commands in the submission.
+```{r}
+CODE <- for_checkr(USER_CODE)
+```
 
-To start, here's a pattern that stands for "the sine of something": `sin(.)`. The `.` inside the parentheses means "any single argument." 
+From now on, the character-string submission itself is not needed; all the necessary information is in `CODE`.
 
-To elaborate a bit, the pattern `sin(..(ang))` means "the sine of something, where the value of that something will be stored under the name `ang`." And going further, the pattern `.(fn)(..(ang))` means, "a function applied to a single argument, where the function name will be stored under `fn` and the value of the argument stored under `ang`." Note that `.(fn)(..(ang))` will *not* match `15 * sin(53 * pi / 180)`, because the pattern doesn't say anything about multiplication by 15.
+### Looking for a valid line
+
+The student's submission might include blank lines, or some scratch work, or some setup that calculates some component of the answer. A good way to handle such diverse possibilities is to use the `at()` function to probe the submission for a line that contains the desired result.
+
+To start very simply, let's look for a line that generates the expected numerical result:
+
+
+```{r}
+line_at(CODE, abs(V - 11.98) < 0.01, fail = "Wrong numerical result.", type = is.numeric)
+```
+
+The `line_at` function scans through all the lines in `CODE`. (There's just one line in this example.) For each line, `line_at()` creates some pronouns:
+
+- `V` - the value of the line
+- `F` - the top-level function used in the line
+- `EX` - the expression itself, as code.
+- `Z` - the name to which the result was assigned, if any.
+
+If the line contains an assignment, `F` and `EX` both refer to the right-hand side of the assignment.
+
+For each line in `CODE`, `line_at()` runs tests written in terms of the pronouns. These are ordinary R statements that can include any function, but they must return a logical as the result. There can be multiple test statements (each as its own argument to `line_at()`, and so separated by commas as usual in R). The individual test statements can be as complicated as necessary.
+
+If there is any line for which *all* the tests pass, `line_at()` returns that line in a format that can be used for further testing, if desired. If there is no such line in `CODE`, `line_at()` will return a failure result.
+
+The `type = is.numeric` argument to `at()` is a way of saying, "I'm only going to run the tests if `V` is numerical." This provides some armor against the possibility that the submission produces something other than a number.
+
+### Connecting with `learnr`
+
+It might be that all you want is to check that *some* line produces the result you're looking for. For this simple situation, you might implement the tutorial code checking in `learnr` by adding a `-check` block for the exercise with these contents:
+
+NEED TO CHECK THIS IN LEARNR
+```r
+CODE <- for_checkr(USER_CODE)
+line_at(CODE, abs(V - 11.98) < 0.01, 
+   fail = "Wrong numerical result.", 
+   type = is.numeric)
+```
+
+This is a very simplistic sort of feedback: right or wrong.
+
+### Providing constructive feedback
+
+Depending on your purpose, you may want to examine the submitted code for the kinds of errors you expect to be common and provide messages to guide the student around such errors. For instance, check that the user calls a trig function
+
+```{r}
+CODE <- for_checkr(USER_CODE)
+# CODE <- for_checkr(11.98)
+trig_functions <- c(quote(sin), quote(cos), quote(tan))
+line <- line_at(CODE, EX %calls% trig_functions, 
+                fail = "You should be using a trigonometric function." )
+```
+
+* WRITE an `includes()` function that checks through the whole expression and returns 
+the sub-expression with a particular function at the head. Also, `has_name(EX, set_of_names)` that returns a boolean depending on whether EX has at some point in the parse tree any of the names in the set of names.
+* Write `arg_calling(EX, set-of-names)` that returns the argument starting with the any of the names in the set.
+* Maybe `line_calling(EX, set-of-names)` as an alternative to `line_at()`.
+* `arg_is_constant(EX, type = c("numeric", "character", "logical"))`
+* Or maybe `arg_such_that()` which gives pronouns `F`, `is_call`, `is_constant`, `is_call_to`
+
+Or maybe recast `at()` as `line_where()` along with `expression_where()` which looks recursively in the line for an expression that passes the test.
+
+
+
 
 Consider this checking statement:
 
@@ -118,7 +174,7 @@ A more complete answer would look for multiplication by 15. This involves a patt
 
 ```{r eval = FALSE}
 if_matches(submission, .(fn)(..(arg)), 
-           failif(TRUE), "Remember to take the length of the hypothenuse into account.")
+           failif(TRUE, "Remember to take the length of the hypothenuse into account."))
 if_matches(submission, 15 * .(fn)(..(arg)), 
            failif(fn != quote(sin), "{{fn}} is not the correct trig function."),
            failif(ang == 53, "You need to convert the 53 degrees into radians."),
@@ -141,6 +197,27 @@ if_matches(submission, .(hyp) * .(fn)(..(ang)),
 ```
 
 The checking can be made more elaborate. For instance, suppose we want to warn about using `+` instead of `*` in the statement. This pattern will capture the function used in the place where we want multiplication:  `.(mult_fn)(.(hyp), .(fn)(..(ang)))`. With this pattern, we might include a test like `` failif(mult_fn != quote(`*`), "{{mult_fn}} is the wrong function.")``
+
+### Taken out
+
+One possibility would be "regular expressions" of the sort supported by `grep()`, `gsub()`, and so on. However, regular expressions do not know about the required syntax of R statements. For instance, "function arguments are enclosed in parentheses and multiple arguments are separated by commas."
+
+The `redpen` package provides a pattern language that knows about R syntax. This allows us to specify patterns in a way that resembles R commands themselves. In particular, every pattern statement in `redpen` must be a syntactically correct R expression. As a trivial example, the pattern `15 * sin(53 * pi / 180)` describes an exact match to a specific correct answer. 
+
+
+
+But there are other possible correct answers, e.g.
+
+```{r}
+submission_2 <- "theta <- 53 * pi/180; r <- 15; r*sin(theta)"
+submission_3 <- "ang <- pi * (53 / 180); sin(ang) * 15"
+```
+
+Since it will be difficult to list every possible statement that produces a correct answer, it's important that the pattern language automatically handle trivial permutations of the correct command, unnecessary grouping parentheses, unconventional whitespace, etc.
+
+To start, here's a pattern that stands for "the sine of something": `sin(.)`. The `.` inside the parentheses means "any single argument." 
+
+To elaborate a bit, the pattern `sin(..(ang))` means "the sine of something, where the value of that something will be stored under the name `ang`." And going further, the pattern `.(fn)(..(ang))` means, "a function applied to a single argument, where the function name will be stored under `fn` and the value of the argument stored under `ang`." Note that `.(fn)(..(ang))` will *not* match `15 * sin(53 * pi / 180)`, because the pattern doesn't say anything about multiplication by 15.
 
 ## Fill in the blanks
 
@@ -353,3 +430,14 @@ if_matches(submission, .(fn)(.(var)),
 ## Some kinds of questions
 
 <http://third-bit.com/2017/10/16/exercise-types.html>
+
+## Taken out
+
+
+
+
+To help meet the demand for R-related training, various *interactive tutorial systems* have been developed. These include [Swirl](http://swirlstats.com/), [DataComp.com](http://DataCamp.com), and the Shiny-based system introduced by RStudio: [`learnr`](http://github.com/rstudio/learnr). In each of these systems, a problem is posed to the student, who has an opportunity to construct R commands as a solution. The R commands are then passed to an evaluation system.
+
+
+
+Readers may also want to check out the system for *[submission correctness tests](https://www.datacamp.com/community/blog/submission-correctness-testing-in-datacamp-datacamp-part-i#gs.vuTG8Xw)* provided by DataCamp.

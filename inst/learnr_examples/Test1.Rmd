@@ -30,14 +30,23 @@ Write the R code to add two plus two:
 ```
 
 ```{r two-plus-two-check}
-if_matches(USER_CODE, {..(val); .(fn)(..(a), ..(b))}, 
-           passif(fn == as.name("+") && a == b, "It worked!"),
-           failif(fn != as.name("+"), "Use +, not {{fn}}."),
+USER_CODE <- "(2 + 2)"
+CODE <- for_checkr(USER_CODE)
+L1 <- line_at(CODE, F == `+`, fail = "Use +, not {{F}}.")
+t1 <- bind(L1, {..(val); .(fn)(..(a), ..(b))}, 
+           failif(a != b, "The two arguments should be the same. You have {{a}} and {{b}}."),
            failif(a != 2, "Sorry. The first argument must be 2."),
            failif(b != 2, "No luck. The second argument should also be 2.")
 )
-if_matches(USER_CODE, .(fn)(.), failif(TRUE, "{{fn}}() is a function of a single argument. You want a function of two arguments that adds its arguments.") )
-if_matches(USER_CODE, ..(val), failif(val != 4, "Couldn't see any matches."))
+# return(t1)
+t2 <- chk(L1, failif(n_args(EX) != 2, "{{func_of(EX)}}() is a function of {{n_args(EX)}} argument(s). You want a function of two arguments that adds its arguments.{{EX}} gives {{V}}") )
+
+t3 <- chk(L1, passif(V == 4, "Good")) 
+# provide a success marker among the tests
+# or use resolve_ok() on the result
+
+# Overall result
+t1 %and% t2 %and% t3
 ```
 
 ### Using `rep()`
@@ -67,17 +76,17 @@ rep(1:4, .... = 3)
 # For testing ...
 #USER_CODE <- quote(Id <- c(1,1,1,2,2,2,3,3,3,4,4,4))
 #USER_CODE <- "Id <- rep(1:3, each = 3)"
-if_matches(USER_CODE, ".(fn)(...)",
+bind(USER_CODE, ".(fn)(...)",
            failif(fn != quote(`<-`), "Remember to store the result under the name `Id`."))
-if_matches(USER_CODE, {..(res); `<-`(.(nm), .(val))},
+bind(USER_CODE, {..(res); `<-`(.(nm), .(val))},
            failif(nm != quote(Id), "The object should be called `Id`, not '{{nm}}'."),
-           if_matches(val, c(1, 1, 1, ...),
+           bind(val, c(1, 1, 1, ...),
                       failif(TRUE, "That's not using `rep()`!")),
-           if_matches(val, rep(..(a), `..(nm)` = ..(arg2)),
+           bind(val, rep(..(a), `..(nm)` = ..(arg2)),
                       failif(nm != "each", "Look at the help for `rep()` to see what arguments are available to control the pattern of repetition. (These are documented under `...`)"),
                       failif(arg2 != 3, "How many times do you need to repeat each element?"),
                       failif(!identical(a, 1:4), "The elements to be repeated are 1 through 4, not {{a}}. Where do you construct that set to pass to `rep()`?")),
-           if_matches(val, ..(res), 
+           bind(val, ..(res), 
                       passif(identical(res, rep(1:4, each = 3)), "Right!"),
                       failif(TRUE, "Something's not right!")))
 
@@ -109,11 +118,11 @@ rep(...., length.out = 12)
 ```{r bunch-1-b-check, echo = FALSE}
 # For testing ...
 #USER_CODE <- "Letter <- rep(c("a","b","c"), each = 4)"
-if_matches(USER_CODE, ".(fn)(...)",
+bind(USER_CODE, ".(fn)(...)",
            failif(fn != quote(`<-`), "Remember to store the result under the name `Letter`."))
-if_matches(USER_CODE, {..(res); `<-`(.(nm), .(val))},
+bind(USER_CODE, {..(res); `<-`(.(nm), .(val))},
            failif(nm != quote(Letter), "The object should be called `Letter`, not '{{nm}}'."),
-           if_matches(val, rep(..(a), `..(nm)` = ..(arg2)),
+           bind(val, rep(..(a), `..(nm)` = ..(arg2)),
                       failif(nm != "each", "Look at the help for `rep()` to see what arguments are available to control the pattern of repetition. (These are documented under `...`)"),
                       failif( ! identical(a, c("a", "b", "c")),  "The elements to be repeated are `\"a\", \"b\", \"c\"`, not {{a}}. Where do you construct that set to hand to `rep()`?")),
            passif(identical(res, rep(c("a","b","c"), each = 4)), "Right!"),
@@ -147,22 +156,22 @@ df <- data.frame(x = x, y = y, Id = Id)
 # })
 
 fail_if_no_match(USER_CODE, Id <- ., "You didn't create `Id` as requested.")
-if_matches(USER_CODE, `<-`(Id, ..(val)),
+bind(USER_CODE, `<-`(Id, ..(val)),
            failif( ! identical(val, rep(1:4, each = 3)), 
                    "You didn't make `Id` correctly. "))
 fail_if_no_match(USER_CODE, x <- ., "You didn't create `x` as requested.")
-if_matches(USER_CODE, `<-`(x, ..(val)),
+bind(USER_CODE, `<-`(x, ..(val)),
            failif( ! identical(val, seq(1, 43, length = 12)),
                    "You didn't make `x` correctly."))
 fail_if_no_match(USER_CODE, y <- ., "You didn't create `y` as requested.")
-if_matches(USER_CODE, `<-`(y, ..(val)),
+bind(USER_CODE, `<-`(y, ..(val)),
            failif( ! identical(val, seq(-20, 0, length = 12)),
                    "You didn't make `y` correctly."))
 fail_if_no_match(USER_CODE, df <- ., "You didn't create `df` as requested.")
-if_matches(USER_CODE, `<-`(df, ..(df)),
+bind(USER_CODE, `<-`(df, ..(df)),
            failif( ncol(df) != 3, "The data frame `df` should have three columns, not {{ncol(df)}}."),
            failif( ! setequal(names(df), c("Id", "x", "y")), "The names of the data frame variables should be `Id`, `x`, `y`. You've got {{paste(paste0('`', names(df), '`'), collapse=', ')}}."))
-if_matches(USER_CODE, `<-`(df, .(fn)(...)),
+bind(USER_CODE, `<-`(df, .(fn)(...)),
            failif(fn != quote(data.frame), "Use the `data.frame()` function to make the data frame"))
            
 pass_anyways()
