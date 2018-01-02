@@ -33,6 +33,6 @@ with language objects such as names. They are translated to be equivalent to "\%
 }
 \examples{
 code <- for_checkr(quote({x <- 2; y <- x^2; z <- x + y}))
-my_line <- line_at(code, F == `+`)
+my_line <- line_where(code, F == `+`)
 if_matches(my_line, `+`(..(x), ..(y)), must(y == 4, "use 5 for the second argument to +"))
 }

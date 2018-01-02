@@ -8,7 +8,7 @@
 #' If the patterns match some statement in the expressions, then the tests are evaluated
 #' using the bindings established in the pattern match.
 #'
-#' @aliases bind chk
+#' @aliases line_binding line_value test_binding
 #'
 #'
 #' @return A checkr_test object with an action ("pass", "fail", or "ok") and a
@@ -24,7 +24,7 @@
 #' fail is not empty, then a "fail" checkr_result will be returned with
 #' the value of fail as the message.
 #' @param ... tests to apply to expressions in `ex`. These are typically made
-#' with `passif()`, `failif()`, `noteif()`, `bind()`, and so on.
+#' with `passif()`, `failif()`, `noteif()`, `test_binding()`, and so on.
 #'
 #' @return a test-result list containing a message string and a directive
 #' about whether the expressions in `ex` passed the test.
@@ -40,39 +40,39 @@
 #' ex <- for_checkr(quote(2+2))
 #' wrong1 <- for_checkr(quote(2 - 2))
 #' wrong2 <- for_checkr(quote(2*2))
-#' bind(ex, 2 + 2, passif(TRUE, "carbon copy"))
-#' bind(ex, 3 + 3)
-#' bind(ex, 3 + 3, passif(TRUE, "not a match"))
-#' bind(ex, 3 + 3, passif(TRUE, "not a match"), fail = "not a match")
-#' bind(ex, 2 + ..(y), must(y != 2, "{{expression_string}} wasn't right. Second argument should not be {{y}}"))
-#' bind(ex, `+`(.(a), .(b)), passif(TRUE))
-#' bind(ex, `+`(.(a), .(b)),
+#' line_binding(ex, 2 + 2, passif(TRUE, "carbon copy"))
+#' line_binding(ex, 3 + 3)
+#' line_binding(ex, 3 + 3, passif(TRUE, "not a match"))
+#' line_binding(ex, 3 + 3, passif(TRUE, "not a match"), fail = "not a match")
+#' line_binding(ex, 2 + ..(y), must(y != 2, "{{expression_string}} wasn't right. Second argument should not be {{y}}"))
+#' line_binding(ex, `+`(.(a), .(b)), passif(TRUE))
+#' line_binding(ex, `+`(.(a), .(b)),
 #'   passif(a==b, message = "Yes, they are equal!"))
-#' bind(ex, `+`(.(a), .(b)),
+#' line_binding(ex, `+`(.(a), .(b)),
 #'   passif(a==b,
 #'      message = "Yes, they are equal! In this case, they are both {{a}}."))
-#' bind(wrong1, {.(expr); .(f)(.(a), .(b))},
+#' line_binding(wrong1, {.(expr); .(f)(.(a), .(b))},
 #'   passif(f == `+`, "Right! Addition means {{f}}."),
 #'   failif(f != `+`, "In {{expr}}, you used {{f}} instead of +"))
-#' bind(wrong2, {.(fn)(.(a), .(b)); ..(val)},
+#' line_binding(wrong2, {.(fn)(.(a), .(b)); ..(val)},
 #'   noteif(val == 4, "Right overall answer: {{val}}."),
 #'   failif(fn != `+`, "You need to use the `+` function, not {{fn}}."),
 #'   noteif(val != 4, "The result should be 4, not {{val}}."),
 #'   passif(fn == `+` && val == 4 && a == b))
 #' code2 <- for_checkr(quote({data(mtcars); plot(mpg ~ hp, data = mtcars)}))
-#' bind(code2,
+#' line_binding(code2,
 #'   # note, single . with .(fn)
 #'   {..(val); .(fn)(.(formula), data = mtcars);},
 #'   passif(fn == quote(plot), "You made the plot!"))
 
 
 #' @export
-chk <- function(tidy_code, ..., fail = "") {
-  bind(tidy_code, {..(V); .(EX)}, ..., fail = fail)
+line_value <- function(tidy_code, ..., fail = "") {
+  line_binding(tidy_code, {..(V); .(EX)}, ..., fail = fail)
 }
 
 #' @export
-bind <- function(tidy_code, keys, ..., fail = "") {
+line_binding <- function(tidy_code, keys, ..., fail = "") {
   if (inherits(tidy_code, "checkr_result")) {
     if (tidy_code$action == "fail") return(tidy_code)
     else tidy_code <- tidy_code$code
@@ -143,6 +143,10 @@ bind <- function(tidy_code, keys, ..., fail = "") {
   run_tests(tests, bindings, simp_ex)
 }
 
+# just an alias for line_binding. Not really needed, but
+# it seems nicer to use "test_binding" within a "line_binding"
+#' @export
+test_binding <- line_binding
 
 # utility for copying out the bindings defined by redpen pattern
 copy_env <- function(E) {

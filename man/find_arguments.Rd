@@ -10,7 +10,7 @@
 \alias{first_arg}
 \title{Functions to extract an the argument from an expression}
 \usage{
-formula_arg(ex, n = 1L, fail = "")
+formula_arg(ex, n = 1L, fail = "", pass = "")
 }
 \arguments{
 \item{ex}{the tidy expression to check}

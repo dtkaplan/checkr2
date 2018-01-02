@@ -6,25 +6,32 @@
 #' - V the value produced by the line.
 #' - EX the expression itself (but with assignment removed)
 #'
-#' @aliases line_at lines_after
+#' @aliases line_where lines_after
 #'
 #' @param tidy_code expressions as made by for_checkr()
 #' @param ... tests specifying the kind of line we want
 #' @param fail if a non-empty string, trigger a failure if no matching
 #' line is found, with the string as the message.
+#' @param pass if a non-empty string, call the result a pass rather than an OK
 #' @param type a test to check whether V is a certain type, e.g. `is.numeric`.
 #'
-#' @details `fail` and `type` are optional. The `fail` argument merely sets the
+#' @details `fail`, `pass` and `type` are optional. The `fail` argument merely sets the
 #' message if no matching line is found. `type` can be used to ensure that the value
-#' V is an appropriate kind for the tests specified in ...
+#' V is an appropriate kind for the tests specified in ... The `pass` argument
+#' will mark the result as a definitive pass, rather than the default of OK if the
+#' line is found.
+#'
+#' @return A checkr test result. By default, if the line is found, the result
+#' is an "OK", setting the stage for further testing. The `pass` argument, if given,
+#' turns this into a definitive pass. If no matching line is found, the result is a fail.
 #'
 #' @examples
 #' tidy_code <- for_checkr(quote({x <- 2; y <- x^3; z <- y + x}))
-#' line_at(tidy_code, F %same_as% quote(`^`))
+#' line_where(tidy_code, F %same_as% quote(`^`))
 #'
 #' @rdname sequences
 #' @export
-line_at <- function(tidy_code, ..., fail = "", type = NULL) {
+line_where <- function(tidy_code, ..., fail = "", pass = "", type = NULL) {
   res <- matching_line(tidy_code, fail, ..., type = type,
                        type_text = substitute(type))
   if (res$n == 0) {
@@ -33,8 +40,10 @@ line_at <- function(tidy_code, ..., fail = "", type = NULL) {
   }
   else {
     # return just the RHS if assignment
-    new_checkr_result(action = "ok", message = "",
-                      code = list(skip_assign(tidy_code$code[[res$n]])))   }
+    the_code <- list(skip_assign(tidy_code$code[[res$n]]))
+    new_checkr_result(action = ifelse(nchar(pass), "pass", "ok"),
+                      message = pass, # will be empty if pass not set
+                      code = the_code)  }
 }
 #' Grab the lines after a specified line (which is included)
 #' @export
@@ -56,7 +65,11 @@ matching_line <- function(tidy_code, fail, ..., type = NULL, type_text="") {
   tests <- rlang::quos(...)
   type_failure <- "" # a flag
   for (k in 1:length(tidy_code$code)) {
-    V <- tidy_code$values[[k]]
+    V <- if ("values" %in% names(tidy_code)) {
+      tidy_code$values[[k]]
+    } else {
+      rlang::eval_tidy(tidy_code$code[[k]])
+    }
     F <- get_function(simplify_ex(tidy_code$code[[k]]))
     Z <- get_assignment_name(tidy_code$code[[k]])
     EX <- skip_assign(tidy_code$code[[k]])

@@ -3,12 +3,13 @@
 \name{passed}
 \alias{passed}
 \alias{failed}
+\alias{ok}
 \title{Check whether a test passed or failed}
 \usage{
 passed(t)
 }
 \arguments{
-\item{t}{a checkr_test_result such as produced by `line_at()``}
+\item{t}{a checkr_test_result such as produced by `line_where()``}
 }
 \description{
 Check whether a test passed or failed

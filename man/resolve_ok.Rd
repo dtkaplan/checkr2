@@ -22,8 +22,8 @@ will be pre-pended to whatever message was with the "ok" test result.
 }
 \examples{
 CODE <- for_checkr("sin(pi)")
-L1 <- line_at(CODE, F != sin) # gives an OK, because `fail` was not set.
+L1 <- line_where(CODE, F != sin) # gives an OK, because `fail` was not set.
 resolve_ok(L1)
- 
+
 
 }

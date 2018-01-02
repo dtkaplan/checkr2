@@ -34,7 +34,7 @@ to \code{if_matches()} should be literally \code{USER_CODE}.
 \examples{
 # as it would be called from the learnr system ...
 check_for_learnr(envir_result = 3, label = "first", user_code = "sin(pi)",
-  check_code = 'ex <- for_checkr(USER_CODE); t1 <- line_at(ex, F == sin, fail="Please use the sin function.");a1 <- arg_number(t1, 1); chk(a1, passif(V == pi, "Right-oh!"))'
+  check_code = 'ex <- for_checkr(USER_CODE); t1 <- line_where(ex, F == sin, fail="Please use the sin function.");a1 <- arg_number(t1, 1); line_value(a1, passif(V == pi, "Right-oh!"))'
 )
 
 #'

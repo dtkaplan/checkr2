@@ -32,16 +32,16 @@ Write the R code to add two plus two:
 ```{r two-plus-two-check}
 USER_CODE <- "(2 + 2)"
 CODE <- for_checkr(USER_CODE)
-L1 <- line_at(CODE, F == `+`, fail = "Use +, not {{F}}.")
+L1 <- line_where(CODE, F == `+`, fail = "Use +, not {{F}}.")
 t1 <- bind(L1, {..(val); .(fn)(..(a), ..(b))}, 
            failif(a != b, "The two arguments should be the same. You have {{a}} and {{b}}."),
            failif(a != 2, "Sorry. The first argument must be 2."),
            failif(b != 2, "No luck. The second argument should also be 2.")
 )
 # return(t1)
-t2 <- chk(L1, failif(n_args(EX) != 2, "{{func_of(EX)}}() is a function of {{n_args(EX)}} argument(s). You want a function of two arguments that adds its arguments.{{EX}} gives {{V}}") )
+t2 <- line_value(L1, failif(n_args(EX) != 2, "{{func_of(EX)}}() is a function of {{n_args(EX)}} argument(s). You want a function of two arguments that adds its arguments.{{EX}} gives {{V}}") )
 
-t3 <- chk(L1, passif(V == 4, "Good")) 
+t3 <- line_value(L1, passif(V == 4, "Good")) 
 # provide a success marker among the tests
 # or use resolve_ok() on the result
 

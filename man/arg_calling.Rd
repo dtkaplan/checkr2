@@ -2,9 +2,9 @@
 % Please edit documentation in R/arg_calling.R
 \name{arg_calling}
 \alias{arg_calling}
-\title{Pull out an argument calling a specified function}
+\title{Pull out an line, expression, or argument calling a specified function}
 \usage{
-arg_calling(ex, n = 1L, fail = "", qfuns)
+arg_calling(ex, n = 1L, fail = "", pass = "", qfuns)
 }
 \arguments{
 \item{ex}{An call to be checked}
@@ -13,13 +13,22 @@ arg_calling(ex, n = 1L, fail = "", qfuns)
 
 \item{fail}{character string message on failure}
 
+\item{pass}{character string message and flag meaning success is a pass, not just an OK.}
+
 \item{qfuns}{A quoted function name or vector of names}
 }
 \description{
 Find an argument
 }
 \examples{
-ex <- for_checkr(quote(sin(53 * pi / 180)))
+ex <- for_checkr(quote(15 * sin(53 * pi / 180)))
+ex2 <- for_checkr(quote(sin(3)))
+line_calling(ex, qfuns = quote(sin))
+# look everywhere, including the top-level function
+call_to(ex, qfuns = quote(sin))
+call_to(ex2, qfuns = quote(sin))
+# look only in arguments: the top-level function doesn't count
 arg_calling(ex, qfuns = quote(sin))
+arg_calling(ex2, qfuns = quote(sin))
 
 }

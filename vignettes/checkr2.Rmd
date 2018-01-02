@@ -28,6 +28,43 @@ The `checkr2` package provides such an evaluation system that provides both summ
 
 `Checkr2` can be used in a stand-alone mode or as embedded in a `learnr` tutorial. 
 
+## A catalog of tests
+
+Locate a line ...
+
+* `line_where()` - binds V, EX, Z, F. Special case of line_binding.
+* `line_after()` - like `line_where()`, but returns *all* lines after (and including) the line found.
+* `line_value()` - even simpler than `line_where()`, binding just V and EX
+* `line_calling()` - looks for a call to a function anywhere in the line. Compare: `line_where()` provides F, which is just the highest-level call.
+* `line_binding()` - custom bindings to patterns. (This was originally called `if_matches()`.)
+
+Within a line or expression...
+
+* `call_to()`  Pulls out the expression in a line that is a call to a specified function.
+* `test_binding()` Allows custom binding to an expression. (Just an alias for `line_binding()`)
+
+Arguments ... each returns the argument as an expression
+
+* `arg_calling()` return an argument that calls  a specified function
+* `named_arg()` return an argument that has a specified name.
+* `formula_arg()` return an argument that is a formula. Similar for `data_arg()`, `matrix_arg()`, `vector_arg()`, `list_arg()`, `table_arg()`, `first_arg()`
+* `arg_number()` return the argument in position n
+
+Tests that trigger a desired outcome
+
+* `passif()`, `failif()`, `okif()`
+
+DO I WANT TO BE ABLE TO USE THESE WITH `line_` functions generally, or is it enough just to use these with `line_binding()` and `test_binding()`.
+
+Within tests ...
+
+* `%same_as%`
+* `%not_same_as%`
+
+To fail when a match is encountered ...
+
+* `not(line_calling(..., pass = "what to say if the undesired thing is found"))
+
 ## A first example
 
 Consider this problem from trigonometry:
@@ -74,10 +111,10 @@ To start very simply, let's look for a line that generates the expected numerica
 
 
 ```{r}
-line_at(CODE, abs(V - 11.98) < 0.01, fail = "Wrong numerical result.", type = is.numeric)
+line_where(CODE, abs(V - 11.98) < 0.01, fail = "Wrong numerical result.", type = is.numeric)
 ```
 
-The `line_at` function scans through all the lines in `CODE`. (There's just one line in this example.) For each line, `line_at()` creates some pronouns:
+The `line_where` function scans through all the lines in `CODE`. (There's just one line in this example.) For each line, `line_where()` creates some pronouns:
 
 - `V` - the value of the line
 - `F` - the top-level function used in the line
@@ -86,9 +123,9 @@ The `line_at` function scans through all the lines in `CODE`. (There's just one 
 
 If the line contains an assignment, `F` and `EX` both refer to the right-hand side of the assignment.
 
-For each line in `CODE`, `line_at()` runs tests written in terms of the pronouns. These are ordinary R statements that can include any function, but they must return a logical as the result. There can be multiple test statements (each as its own argument to `line_at()`, and so separated by commas as usual in R). The individual test statements can be as complicated as necessary.
+For each line in `CODE`, `line_where()` runs tests written in terms of the pronouns. These are ordinary R statements that can include any function, but they must return a logical as the result. There can be multiple test statements (each as its own argument to `line_where()`, and so separated by commas as usual in R). The individual test statements can be as complicated as necessary.
 
-If there is any line for which *all* the tests pass, `line_at()` returns that line in a format that can be used for further testing, if desired. If there is no such line in `CODE`, `line_at()` will return a failure result.
+If there is any line for which *all* the tests pass, `line_where()` returns that line in a format that can be used for further testing, if desired. If there is no such line in `CODE`, `line_where()` will return a failure result.
 
 The `type = is.numeric` argument to `at()` is a way of saying, "I'm only going to run the tests if `V` is numerical." This provides some armor against the possibility that the submission produces something other than a number.
 
@@ -99,7 +136,7 @@ It might be that all you want is to check that *some* line produces the result y
 NEED TO CHECK THIS IN LEARNR
 ```r
 CODE <- for_checkr(USER_CODE)
-line_at(CODE, abs(V - 11.98) < 0.01, 
+line_where(CODE, abs(V - 11.98) < 0.01, 
    fail = "Wrong numerical result.", 
    type = is.numeric)
 ```
@@ -108,24 +145,40 @@ This is a very simplistic sort of feedback: right or wrong.
 
 ### Providing constructive feedback
 
-Depending on your purpose, you may want to examine the submitted code for the kinds of errors you expect to be common and provide messages to guide the student around such errors. For instance, check that the user calls a trig function
+Depending on your purpose, you may want to examine the submitted code for the kinds of errors you expect to be common and provide messages to guide the student around such errors. The following statements, for instance, check whether the user calls a trig function, uses multiplication, and gets the right value, all in the same line.
 
 ```{r}
 CODE <- for_checkr(USER_CODE)
-# CODE <- for_checkr(11.98)
+# CODE <- for_checkr(quote(11.98))
+# CODE <- for_checkr(quote(sin(53)))
 trig_functions <- c(quote(sin), quote(cos), quote(tan))
-line <- line_at(CODE, EX %calls% trig_functions, 
-                fail = "You should be using a trigonometric function." )
+t1 <- line_calling(CODE, qfuns = trig_functions, fail = "You should be using a trigonometric function.")
+t2 <- line_where(t1, F == quote(`*`),
+              fail = "Remember to multiply by the length of the hypotenuse")
+if (ok(t1 %and% t2)) {
+  line_where(t1, abs(V - 11.98) < 0.01, 
+                pass = "Good job!",
+                fail = "Wrong numerical result.", 
+                type = is.numeric)
+} else {
+  t1 %and% t2
+}
 ```
 
-* WRITE an `includes()` function that checks through the whole expression and returns 
-the sub-expression with a particular function at the head. Also, `has_name(EX, set_of_names)` that returns a boolean depending on whether EX has at some point in the parse tree any of the names in the set of names.
-* Write `arg_calling(EX, set-of-names)` that returns the argument starting with the any of the names in the set.
-* Maybe `line_calling(EX, set-of-names)` as an alternative to `line_at()`.
-* `arg_is_constant(EX, type = c("numeric", "character", "logical"))`
-* Or maybe `arg_such_that()` which gives pronouns `F`, `is_call`, `is_constant`, `is_call_to`
+You could do further checking, if desired. For instance, before checking the final value, perhaps make sure that the sine function specifically is being called, or if the value produced by the sine function is consistent with 53 degrees.
 
-Or maybe recast `at()` as `line_where()` along with `expression_where()` which looks recursively in the line for an expression that passes the test.
+### Anticipating student errors
+
+When developing checking code, you likely have in mind some typical mistakes that a student might make. For instance, in trigonometry, it's common to confuse the cosine with the sine. You might want to include checking statements that look specifically for a particular mistake and give a tailored feedback message.
+
+
+
+### Writing functions for checking
+
+The functions provided by `checkr` can be composed into higher-level functions in the ordinary way. We'll call these *`checkr` functions*.  Keep in mind: that both the input to and output from a `checkr` function should be an object of type `checkr_result`. (There can be other inputs as well, for instance, a specified value.)
+
+To illustrate, consider `trig_radian_check()`, a function to check whether the argument to trigonometric functions is in radians. It takes as arguments a `checkr_result` that (presumably) contains a call to a trigonometric function and the value, in radians, that is expected.
+
 
 
 

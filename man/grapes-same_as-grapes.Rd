@@ -4,6 +4,7 @@
 \alias{\%same_as\%}
 \alias{\%not_same_as\%}
 \alias{\%calls\%}
+\alias{not}
 \title{Comparison operators for bindings}
 \usage{
 e1 \%same_as\% e2

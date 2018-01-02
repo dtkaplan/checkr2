@@ -1,6 +1,6 @@
 #' Comparison operators for bindings
 #'
-#' @aliases %same_as% %not_same_as% %calls%
+#' @aliases %same_as% %not_same_as% %calls% not
 #'
 #' @param e1 an expression,
 #' @param e2 another expression
@@ -17,12 +17,20 @@
   ! e1 %same_as% e2
 }
 
+#' @export
+not <- function(e1) {
+  if (e1$action %in% c("pass", "ok")) e1$action = "fail"
+  else e1$action = "pass"
+
+  e1
+}
+
 #' @examples
 #' ex <- quote(15 * sin(pi))
 #' ex %calls% quote(sin)
 #' ex %calls% c(quote(sin), quote(cos))
 #' ex %calls% c(quote(tan), quote(cos))
-#'
+# DOES IT MAKE SENSE TO HAVE THIS now that there is `line_calling()`
 #' @export
 "%calls%" <- function(ex, funs) {
   # is it a call at the highest level?
