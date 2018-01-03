@@ -32,8 +32,7 @@ The `checkr2` package provides such an evaluation system that provides both summ
 
 Locate a line ...
 
-* `line_where()` - binds V, EX, Z, F. Special case of line_binding.
-* `line_after()` - like `line_where()`, but returns *all* lines after (and including) the line found.
+* `line_where()` - binds V, EX, Z, F. Special case of line_binding. 
 * `line_value()` - even simpler than `line_where()`, binding just V and EX
 * `line_calling()` - looks for a call to a function anywhere in the line. Compare: `line_where()` provides F, which is just the highest-level call.
 * `line_binding()` - custom bindings to patterns. (This was originally called `if_matches()`.)
@@ -43,7 +42,7 @@ Within a line or expression...
 * `call_to()`  Pulls out the expression in a line that is a call to a specified function.
 * `test_binding()` Allows custom binding to an expression. (Just an alias for `line_binding()`)
 
-Arguments ... each returns the argument as an expression
+Arguments. Each returns the argument as an expression, applying any tests
 
 * `arg_calling()` return an argument that calls  a specified function
 * `named_arg()` return an argument that has a specified name.
@@ -53,8 +52,6 @@ Arguments ... each returns the argument as an expression
 Tests that trigger a desired outcome
 
 * `passif()`, `failif()`, `okif()`
-
-DO I WANT TO BE ABLE TO USE THESE WITH `line_` functions generally, or is it enough just to use these with `line_binding()` and `test_binding()`.
 
 Within tests ...
 

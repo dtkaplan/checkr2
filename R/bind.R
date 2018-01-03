@@ -73,10 +73,10 @@ line_value <- function(tidy_code, ..., fail = "") {
 
 #' @export
 line_binding <- function(tidy_code, keys, ..., fail = "") {
-  if (inherits(tidy_code, "checkr_result")) {
-    if (tidy_code$action == "fail") return(tidy_code)
-    else tidy_code <- tidy_code$code
-  }
+  stopifnot(inherits(tidy_code, "checkr_result"))
+  if (failed(tidy_code)) return(tidy_code)
+
+  code <- tidy_code$code
   keys <- rlang::enexpr(keys)
   # make sure the patterns, even if from parse(),
   # are put into the form of a set of bracketed expressions
@@ -87,9 +87,11 @@ line_binding <- function(tidy_code, keys, ..., fail = "") {
   # the bracket `{`
 
   if (length(keys) <= 1) stop("No expressions given for argument 'keys'.")
-  bindings <- list() # outside loop so tests have bindings
-                     # for all previous matches.
-  for (m in seq_along(tidy_code)) {
+  #bindings <- list() # outside loop so tests have bindings
+   #                  # for all previous matches.
+  for (m in seq_along(code)) {
+    this_env <- environment(code[[m]]) # get the line's environment
+    bindings <- list()
     patterns_matched <- rep(FALSE, length(keys)-1)
     for (k in 2:length(keys)) {
       # a formula whose RHS copies the environment
@@ -100,7 +102,7 @@ line_binding <- function(tidy_code, keys, ..., fail = "") {
       # Grab the list of bindings
       # Handle either a simple list of quosures or the output of
       # for_checkr()
-      simp_ex <- simplify_ex(tidy_code[[m]])
+      simp_ex <- simplify_ex(code[[m]])
       new_bindings <-
         try(redpen::node_match(simp_ex, !!pattern),
             silent = TRUE)
@@ -134,13 +136,16 @@ line_binding <- function(tidy_code, keys, ..., fail = "") {
   # If none of the expressions matched all of the patterns,
   # return now.
   if ( ! all(patterns_matched)) {
-    res <- if (fail == "") new_checkr_result("ok")
-    else new_checkr_result("fail", "Patterns didn't match")
+    res <- if (fail == "") new_checkr_result("ok", code = code)
+    else new_checkr_result("fail", "Patterns didn't match", code = code)
     return(res)
   }
 
   # run the tests with these bindings
-  run_tests(tests, bindings, simp_ex)
+  res <- run_tests(tests, bindings, simp_ex)
+  res$code <- code[[m]]
+
+  res
 }
 
 # just an alias for line_binding. Not really needed, but
@@ -187,16 +192,15 @@ as_bracketed_expressions <- function(ex) {
 # like (2 + 2)*4 need the parens, but the root of the parse tree will
 # be * rather than (. So get rid of extraneous parens.
 simplify_ex <- function(ex) {
-  if (rlang::is_quosure(ex)) {
-    exx <- rlang::quo_expr(ex)
-    res <- if (inherits(exx, "(")) {
-      rlang::new_quosure(simplify_ex(exx), env = environment(ex))
-    } else {
-      ex
-    }
-    return(res)
-  } else if (inherits(ex, "(")) simplify_ex(ex[[2]]) # the contents of the paren
-  else ex
+  stopifnot(inherits(ex, "quosure"))
+  ex <- new_quosure(simplify_ex_helper(rlang::quo_expr(ex)),
+                    env = environment(ex))
+
+  ex
+}
+simplify_ex_helper <- function(raw_ex) { # recursive to remove nested parens.
+  if (inherits(raw_ex, "(")) simplify_ex_helper(raw_ex[[2]])
+  else raw_ex
 }
 
 

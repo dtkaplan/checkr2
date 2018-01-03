@@ -19,8 +19,28 @@ moustache <- function(string, bindings = rlang::env_parent()) {
       # it wasn't a valid expression
       val <- paste0("'{{", expressions[j], "}}' could not be evaluated.")
     }
-    string <- gsub(matches[j], deparse(val), string, fixed = TRUE)
+    string <- gsub(matches[j], to_sensible_character(val), string, fixed = TRUE)
   }
 
   return(string)
+}
+
+to_sensible_character <- function(v) {
+  if (is.vector(v)) {
+    if (length(v) > 5) {
+      paste(paste(as.character(head(v,2)), collapse = ", "),
+            "...",
+            paste(as.character(tail(v,2)),collapse = ", "))
+
+    } else {
+      paste(as.character(v), collapse = ",")
+    }
+  } else if (is.matrix(v)) {
+      paste(paste(dim(v), collapse = "by"), "matrix with vals", to_sensible_character(v[]))
+  } else if (is.data.frame(v)) {
+    paste("data frame with", nrow(v), "rows,",
+          length(v), "columns, and names", to_sensible_character(names(v)))
+  } else {
+    deparse(v)
+  }
 }
