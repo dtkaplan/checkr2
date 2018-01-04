@@ -31,17 +31,17 @@ run_tests <- function(test_list, bindings, ex) {
       action <- test("action", test_result)
     }
     # Short circuit on pass or fail.
-    if (action == "note") {
-      notes <- c(notes, message) # save notes for later pass or fail
+    if (action == "ok") {
+      if (is.null(notes) && message != "") notes <- paste("*", message)
+      else if (message != "")
+        notes <- paste(notes,"\n*", message) # save notes for later pass or fail
+
     } else if (action %in% c("pass", "fail")) {
       res$action <- action
       res$message <- message
-      if (res$action == "fail" && ! is.null(notes))
-        res$message <- paste(message, "\nNOTE:",
-                             paste(notes, collapse = "\n"))
+      if ( ! is.null(notes))
+        res$message <- paste0(message, "\nNOTES:\n", notes)
       return(res)
-    } else if (action %in% "ok") {
-        res <- new_checkr_result() # the default: it's OK
     }
   }
   res

@@ -1,0 +1,36 @@
+context("assignment detecting functions work")
+
+test_that("can strip off assignment", {
+  r1 <- checkr2:::skip_assign(quo(x <- 3 + 2))
+  expect_equal(r1, quo(3 + 2))
+  r2 <- checkr2:::skip_assign(quo(x <- y <- 3 + 2))
+  expect_equal(r2, quo(3+2))
+  r3 <- checkr2:::skip_assign(quo(3 + 2))
+  expect_equal(r3, quo(3+2))
+  r4 <- checkr2:::skip_assign(quo(3 + 2 -> z))
+  expect_equal(r4, quo(3 + 2))
+  r5 <- checkr2:::skip_assign(quo(2))
+  expect_equal(r5, quo(2))
+})
+
+test_that("can identify name to which assignment is being made", {
+  r1 <- checkr2:::get_assignment_name(quo(x <- 3 + 2))
+  expect_equal(r1, "x")
+  r2 <- checkr2:::get_assignment_name(quo(3 + 2 -> x))
+  expect_equal(r2, "x")
+  r3 <- checkr2:::get_assignment_name(quo(3 + 2))
+  expect_equal(r3, "")
+  r4 <- checkr2:::get_assignment_name(quo(x <- y <- 3 + 2))
+  expect_equal(r4, "x")
+})
+
+test_that("simplify_ex removes assignment and extraneous parentheses", {
+  r1 <- checkr2:::simplify_ex(quo(x <- 3 + 2))
+  expect_equal(r1, quo(3 + 2))
+  r2 <- checkr2:::simplify_ex(quo(x <- (3 + 2) ))
+  expect_equal(r2, quo(3 + 2))
+  r3 <- checkr2:::simplify_ex(quo(x <- y <- ( (3+2) ) ))
+  expect_equal(r3, quo(3 + 2))
+  r4 <- checkr2:::simplify_ex(quo( ( (3+2) ) ))
+  expect_equal(r4, quo(3 + 2))
+})

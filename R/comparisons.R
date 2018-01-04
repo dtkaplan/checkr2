@@ -8,8 +8,12 @@
 `%same_as%` <- function(e1, e2) {
   # Handle numbers specially so we don't have to worry about integers and floating points.
   if (is.numeric(e1) && is.numeric(e2)) e1 == e2
+  # handle names specially
   else if (is.name(e1) && !is.name(e2)) identical(rlang::eval_tidy(e1), e2)
   else if (is.name(e2) && !is.name(e1)) identical(e1, rlang::eval_tidy(e2))
+  # handle quos
+  else if (rlang::is_quosure(e1) && rlang::is_quosure(e2))
+    identical(quo_expr(e1), quo_expr(e2))
   else identical(e1, e2)
 }
 #' @export

@@ -32,10 +32,10 @@ The `checkr2` package provides such an evaluation system that provides both summ
 
 Locate a line ...
 
-* `line_where()` - binds V, EX, Z, F. Special case of line_binding. 
-* `line_value()` - even simpler than `line_where()`, binding just V and EX
-* `line_calling()` - looks for a call to a function anywhere in the line. Compare: `line_where()` provides F, which is just the highest-level call.
-* `line_binding()` - custom bindings to patterns. (This was originally called `if_matches()`.)
+* `line_where()` - binds V, EX, Z, F. Special case of line_binding. No passif() or failif(), just logical tests written in terms of V, EX, Z, F
+* `line_value()` - even simpler than `line_where()`, binding just V and EX. Doesn't distinquish assignments from other operations.
+* `line_calling()` - looks for a call to a function anywhere in the line. Compare: `line_where()` provides F, which is just the highest-level call. THIS DOESN'T WORK WITH ASSIGNMENT. NEED TO STRIP ANY ASSIGNMENT BEFORE SEARCHING.
+* `line_binding()` - custom bindings to patterns. (This was originally called `if_matches()`.) Can use `failif()`, etc.
 
 Within a line or expression...
 

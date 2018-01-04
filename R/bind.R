@@ -18,14 +18,21 @@
 #' be produced by `quote()`, or `parse(text = ...)` or some similar language
 #' mechanism.
 #' @param keys an R statement used for pattern matching and binding, based
-#' on the redpen package. This can also be a {}-bracketed set of patterns.
+#' on the redpen package. This can also be a {}-bracketed set of patterns. If the expression
+#' involves assignment, the keys will be matched only to the RHS of assignment, not the whole
+#' expression.
+#' @param ... tests to apply to expressions in `ex`. These are typically made
+#' with `passif()`, `failif()`, `noteif()`, `test_binding()`, and so on. In addition to the bindings
+#' defined in `keys`, for each line the name of the object assigned to will be bound to the pronoun `Z`.  (`Z` will be `""`
+#' when there's no assignment in the line.)
 #' @param fail a character string message. By default, the function
 #' will return an "ok" checkr_result if the patterns don't match. If
 #' fail is not empty, then a "fail" checkr_result will be returned with
 #' the value of fail as the message.
-#' @param ... tests to apply to expressions in `ex`. These are typically made
-#' with `passif()`, `failif()`, `noteif()`, `test_binding()`, and so on.
 #'
+#' @details Remember that the `keys` should be designed around statements *not* involving assignment.
+#' If you want to check assignment, use the `Z` pronoun.
+
 #' @return a test-result list containing a message string and a directive
 #' about whether the expressions in `ex` passed the test.
 #'
@@ -37,15 +44,16 @@
 #'
 #'
 #' @examples
-#' ex <- for_checkr(quote(2+2))
+#' ex <- for_checkr(quote(z <- 2+2))
 #' wrong1 <- for_checkr(quote(2 - 2))
 #' wrong2 <- for_checkr(quote(2*2))
-#' line_binding(ex, 2 + 2, passif(TRUE, "carbon copy"))
-#' line_binding(ex, 3 + 3)
+#' line_binding(ex, 2 + 2, passif(TRUE, "The patterns matched."))
+#' line_binding(ex, 3 + 3, fail = "wasn't 3 + 3")
+#' line_binding(ex, 2 + 2, passif(Z == "z", "Assignment to {{Z}}."))
 #' line_binding(ex, 3 + 3, passif(TRUE, "not a match"))
 #' line_binding(ex, 3 + 3, passif(TRUE, "not a match"), fail = "not a match")
 #' line_binding(ex, 2 + ..(y), must(y != 2, "{{expression_string}} wasn't right. Second argument should not be {{y}}"))
-#' line_binding(ex, `+`(.(a), .(b)), passif(TRUE))
+#' line_binding(ex, `+`(.(a), .(b)), passif(TRUE, "Found a match."))
 #' line_binding(ex, `+`(.(a), .(b)),
 #'   passif(a==b, message = "Yes, they are equal!"))
 #' line_binding(ex, `+`(.(a), .(b)),
@@ -72,7 +80,7 @@ line_value <- function(tidy_code, ..., fail = "") {
 }
 
 #' @export
-line_binding <- function(tidy_code, keys, ..., fail = "") {
+line_binding <- function(tidy_code, keys, ..., fail = "No match found to specified patterns.") {
   stopifnot(inherits(tidy_code, "checkr_result"))
   if (failed(tidy_code)) return(tidy_code)
 
@@ -87,11 +95,10 @@ line_binding <- function(tidy_code, keys, ..., fail = "") {
   # the bracket `{`
 
   if (length(keys) <= 1) stop("No expressions given for argument 'keys'.")
-  #bindings <- list() # outside loop so tests have bindings
-   #                  # for all previous matches.
+
   for (m in seq_along(code)) {
     this_env <- environment(code[[m]]) # get the line's environment
-    bindings <- list()
+    bindings <- list(Z = get_assignment_name(code[[m]])) # pronoun for assignment name
     patterns_matched <- rep(FALSE, length(keys)-1)
     for (k in 2:length(keys)) {
       # a formula whose RHS copies the environment
@@ -102,6 +109,7 @@ line_binding <- function(tidy_code, keys, ..., fail = "") {
       # Grab the list of bindings
       # Handle either a simple list of quosures or the output of
       # for_checkr()
+      Z <- get_assignment_name(code[[m]])
       simp_ex <- simplify_ex(code[[m]])
       new_bindings <-
         try(redpen::node_match(simp_ex, !!pattern),
@@ -137,13 +145,13 @@ line_binding <- function(tidy_code, keys, ..., fail = "") {
   # return now.
   if ( ! all(patterns_matched)) {
     res <- if (fail == "") new_checkr_result("ok", code = code)
-    else new_checkr_result("fail", "Patterns didn't match", code = code)
+    else new_checkr_result("fail", fail, code = code)
     return(res)
   }
 
   # run the tests with these bindings
   res <- run_tests(tests, bindings, simp_ex)
-  res$code <- code[[m]]
+  res$code <- list(code[[m]])
 
   res
 }
@@ -187,13 +195,14 @@ as_bracketed_expressions <- function(ex) {
 }
 
 # Utility for simplifying expressions that are gratuitously wrapped in
-# parentheses.
+# parentheses and stripping off assignment.
 # NOTE: Any expression like (2+2+2) doesn't need the parens. Expressions
 # like (2 + 2)*4 need the parens, but the root of the parse tree will
 # be * rather than (. So get rid of extraneous parens.
 simplify_ex <- function(ex) {
   stopifnot(inherits(ex, "quosure"))
-  ex <- new_quosure(simplify_ex_helper(rlang::quo_expr(ex)),
+  ex <- skip_assign(ex)
+  ex <- rlang::new_quosure(simplify_ex_helper(rlang::quo_expr(ex)),
                     env = environment(ex))
 
   ex

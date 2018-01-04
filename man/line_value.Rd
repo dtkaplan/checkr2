@@ -10,7 +10,9 @@ line_value(tidy_code, ..., fail = "")
 }
 \arguments{
 \item{...}{tests to apply to expressions in \code{ex}. These are typically made
-with \code{passif()}, \code{failif()}, \code{noteif()}, \code{test_binding()}, and so on.}
+with \code{passif()}, \code{failif()}, \code{noteif()}, \code{test_binding()}, and so on. In addition to the bindings
+defined in \code{keys}, for each line the name of the object assigned to will be bound to the pronoun \code{Z}.  (\code{Z} will be \code{""}
+when there's no assignment in the line.)}
 
 \item{fail}{a character string message. By default, the function
 will return an "ok" checkr_result if the patterns don't match. If
@@ -22,7 +24,9 @@ be produced by \code{quote()}, or \code{parse(text = ...)} or some similar langu
 mechanism.}
 
 \item{keys}{an R statement used for pattern matching and binding, based
-on the redpen package. This can also be a {}-bracketed set of patterns.}
+on the redpen package. This can also be a {}-bracketed set of patterns. If the expression
+involves assignment, the keys will be matched only to the RHS of assignment, not the whole
+expression.}
 }
 \value{
 A checkr_test object with an action ("pass", "fail", or "ok") and a
@@ -41,6 +45,9 @@ is created so that evaluation can proceed to subsequent statements.
 If the patterns match some statement in the expressions, then the tests are evaluated
 using the bindings established in the pattern match.
 
+Remember that the \code{keys} should be designed around statements \emph{not} involving assignment.
+If you want to check assignment, use the \code{Z} pronoun.
+
 The pattern \code{pat} is applied to each of the expressions in \code{ex}.
 The tests are only considered for the first expression in \code{ex} that matches
 the pattern.  \code{passif()} and \code{failif()} tests, when satisfied, lead to immediate
@@ -48,15 +55,16 @@ return: no other tests are performed. \code{noteif()} just adds a note, without
 terminating the testing.
 }
 \examples{
-ex <- for_checkr(quote(2+2))
+ex <- for_checkr(quote(z <- 2+2))
 wrong1 <- for_checkr(quote(2 - 2))
 wrong2 <- for_checkr(quote(2*2))
-line_binding(ex, 2 + 2, passif(TRUE, "carbon copy"))
-line_binding(ex, 3 + 3)
+line_binding(ex, 2 + 2, passif(TRUE, "The patterns matched."))
+line_binding(ex, 3 + 3, fail = "wasn't 3 + 3")
+line_binding(ex, 2 + 2, passif(Z == "z", "Assignment to {{Z}}."))
 line_binding(ex, 3 + 3, passif(TRUE, "not a match"))
 line_binding(ex, 3 + 3, passif(TRUE, "not a match"), fail = "not a match")
 line_binding(ex, 2 + ..(y), must(y != 2, "{{expression_string}} wasn't right. Second argument should not be {{y}}"))
-line_binding(ex, `+`(.(a), .(b)), passif(TRUE))
+line_binding(ex, `+`(.(a), .(b)), passif(TRUE, "Found a match."))
 line_binding(ex, `+`(.(a), .(b)),
   passif(a==b, message = "Yes, they are equal!"))
 line_binding(ex, `+`(.(a), .(b)),

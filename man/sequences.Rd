@@ -5,24 +5,19 @@
 \alias{lines_after}
 \title{Identify an individual line in a sequence of commands}
 \usage{
-line_where(tidy_code, ..., fail = "", pass = "", type = NULL)
+line_where(tidy_code, ..., message = "")
 }
 \arguments{
 \item{tidy_code}{expressions as made by for_checkr()}
 
 \item{...}{tests specifying the kind of line we want}
 
-\item{fail}{if a non-empty string, trigger a failure if no matching
-line is found, with the string as the message.}
-
-\item{pass}{if a non-empty string, call the result a pass rather than an OK}
-
-\item{type}{a test to check whether V is a certain type, e.g. \code{is.numeric}.}
+\item{message}{A character string to be included as the message in the result. This
+can have moustaches written in terms of F, Z, V, or EX}
 }
 \value{
 A checkr test result. By default, if the line is found, the result
-is an "OK", setting the stage for further testing. The \code{pass} argument, if given,
-turns this into a definitive pass. If no matching line is found, the result is a fail.
+is an "OK", setting the stage for further testing. If no matching line is found, the result is a fail.
 }
 \description{
 The tests are written in terms of pronouns
@@ -33,15 +28,8 @@ The tests are written in terms of pronouns
 \item EX the expression itself (but with assignment removed)
 }
 }
-\details{
-\code{fail}, \code{pass} and \code{type} are optional. The \code{fail} argument merely sets the
-message if no matching line is found. \code{type} can be used to ensure that the value
-V is an appropriate kind for the tests specified in ... The \code{pass} argument
-will mark the result as a definitive pass, rather than the default of OK if the
-line is found.
-}
 \examples{
 tidy_code <- for_checkr(quote({x <- 2; y <- x^3; z <- y + x}))
-line_where(tidy_code, F \%same_as\% quote(`^`))
+line_where(tidy_code, F == "^")
 
 }

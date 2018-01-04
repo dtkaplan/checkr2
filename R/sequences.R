@@ -10,17 +10,12 @@
 #'
 #' @param tidy_code expressions as made by for_checkr()
 #' @param ... tests specifying the kind of line we want
-#' @param fail if a non-empty string, trigger a failure if no matching
-#' line is found, with the string as the message.
-#' @param type a test to check whether V is a certain type, e.g. `is.numeric`.
+#' @param message A character string to be included as the message in the result. This
+#' can have moustaches written in terms of F, Z, V, or EX
 #'
-#' @details `fail`and `type` are optional. The `fail` argument merely sets the
-#' message if no matching line is found. `type` can be used to ensure that the value
-#' V is an appropriate kind for the tests specified in ...
 #'
 #' @return A checkr test result. By default, if the line is found, the result
-#' is an "OK", setting the stage for further testing. The `pass` argument, if given,
-#' turns this into a definitive pass. If no matching line is found, the result is a fail.
+#' is an "OK", setting the stage for further testing. If no matching line is found, the result is a fail.
 #'
 #' @examples
 #' tidy_code <- for_checkr(quote({x <- 2; y <- x^3; z <- y + x}))
@@ -28,30 +23,29 @@
 #'
 #' @rdname sequences
 #' @export
-line_where <- function(tidy_code, ..., fail = "",  type = NULL) {
-  res <- matching_line(tidy_code, fail, ..., type = type,
-                       type_text = substitute(type))
+line_where <- function(tidy_code, ..., message = "") {
+  res <- matching_line(tidy_code, ..., message = message)
   if (res$n == 0) {
-    if (nchar(fail)) new_checkr_result(action = "fail", message = res$fail)
-    else new_checkr_result(action = "ok", message = "didn't find line in at.")
+    the_message <-
+      if (nchar(message)) res$message
+      else "Didn't find a line passing tests."
+      new_checkr_result(action = "fail", message = the_message)
   }
   else {
     # return just the RHS if assignment
     the_code <- list(skip_assign(tidy_code$code[[res$n]]))
-    new_checkr_result(action = "ok",
+    new_checkr_result(action = "pass",
                       message = "",
                       code = the_code)
     }
 }
 #' Grab the lines after a specified line (which is included)
 #' @export
-line_after <- function(tidy_code, ..., fail = "", type = NULL) {
-  res <- matching_line(tidy_code, fail, ...)
+lines_after <- function(tidy_code, ..., message = "") {
+  res <- matching_line(tidy_code, ..., message = "")
   if (res$n == 0) {
     if (nchar(fail)) new_checkr_result(action = "fail",
-                                       message = res$fail,
-                                       type = type,
-                                       type_text = substitute(type))
+                                       message = res$message)
     else NULL
   }
   else tidy_code$code[res$n:length(tidy_code$code)]
@@ -59,10 +53,11 @@ line_after <- function(tidy_code, ..., fail = "", type = NULL) {
 
 
 # internal function to run the tests to find a matching line
-matching_line <- function(tidy_code, fail, ..., type = NULL, type_text="") {
+matching_line <- function(tidy_code, ..., message = "", type = NULL, type_text="") {
   tests <- rlang::quos(...)
   type_failure <- "" # a flag
   for (k in 1:length(tidy_code$code)) {
+    # Create the bindings
     V <- if ("values" %in% names(tidy_code)) {
       tidy_code$values[[k]]
     } else {
@@ -78,43 +73,33 @@ matching_line <- function(tidy_code, fail, ..., type = NULL, type_text="") {
     passed_all <- TRUE
     for (t in seq_along(tests)) {
       bindings <- list(V = V, F = F, Z = Z, EX = EX, `==` = `%same_as%`, `!=` = `%not_same_as%` )
-      # check whether V is the right type of object
-      if ( ! (is.null(type) || type(V))) {
-        if ( ! is.null(type_failure)) {
-          type_failure <- paste("didn't find a line with a value passing",
-                                 type_text)
-        }
-      } else { # run the tests
-        type_failure <- NULL # flag saying "don't give a type-failure message
 
-        pass_this_test <-
-          try(rlang::eval_tidy(tests[[t]], data = bindings), silent = TRUE)
-        if (inherits(pass_this_test, "try-error")) {
-          warning("Error in checkr test statement.")
-          passed_all <- FALSE
-          break
-        }
-        else if ( ! pass_this_test) {
-          passed_all <- FALSE
-          break
-        }
+
+      pass_this_test <-
+        try(rlang::eval_tidy(tests[[t]], data = bindings), silent = TRUE)
+      if (inherits(pass_this_test, "try-error")) {
+        warning("Error in checkr test statement.")
+        passed_all <- FALSE
+        break
+      }
+      else if ( ! pass_this_test) {
+        passed_all <- FALSE
+        break
       }
     }
     if (passed_all) break
   }
-  #
+
   # return the line number: zero if no line was found
-  if ( ! (is.null(type_failure) || type_failure == ""))
-    list(n = 0, fail = type_failure)
-  else
-    list(n = ifelse(passed_all, k, 0),
-         fail = moustache(fail, bindings = bindings))
+
+  list(n = ifelse(passed_all, k, 0),
+       message = moustache(message, bindings = bindings))
 }
 
 # Get the lead function (ignoring any assignment)
 get_function <- function(tidy_expr) {
-  ex <- skip_assign(rlang::quo_expr(tidy_expr))
-
+  #ex <- skip_assign(rlang::quo_expr(tidy_expr))
+  ex <- rlang::quo_expr(skip_assign(tidy_expr))
   if (rlang::is_lang(ex)) rlang::lang_head(ex)
   else ex
 }
@@ -127,12 +112,17 @@ get_assignment_name <- function(tidy_expr){
 }
 # modify the expression to remove assignment.
 skip_assign <- function(ex) {
-  if ( ! rlang::is_lang(rlang::quo_expr(ex))) return(rlang::quo_expr(ex))
-  top <- rlang::lang_head(ex)
-  if (as.name("<-") == top)
-    skip_assign(
-      rlang::new_quosure(rlang::quo_expr(rlang::lang_tail(ex)[[2]]),
-                         environment(ex)))
-  else
-    rlang::new_quosure(rlang::quo_expr(ex), env = environment(ex))
+  stopifnot(inherits(ex, "quosure"))
+  if ( ! rlang::is_lang(rlang::quo_expr(ex))) {
+    ex
+  } else {
+    top <- rlang::lang_head(ex)
+    if (as.name("<-") == top) {
+      skip_assign(
+        rlang::new_quosure(rlang::quo_expr(rlang::lang_tail(ex)[[2]]),
+                           environment(ex)))
+    } else {
+      rlang::new_quosure(rlang::quo_expr(ex), env = environment(ex))
+    }
+  }
 }

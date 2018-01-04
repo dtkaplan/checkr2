@@ -133,12 +133,13 @@ new_checkr_result <- function(action = "ok", message = "", code = NULL) {
 print.checkr_result <- function(x, ...) {
   has_code <- "code" %in% names(x)
   if (x$message == "")
-    oneline <- paste0("checkr result ", x$action,
-                      ifelse(has_code, " with code", ""), "\n")
+    oneline <- paste0("checkr result: *", x$action, "*\n")
   else
-    oneline <- paste0("checkr result ", x$action, " with message \"", x$message,
-                      "\"", ifelse(has_code, " and code ", "\n"))
+    oneline <- paste0("checkr result *", x$action, "* with message:\n", x$message)
 
   cat(oneline)
-  if ("code" %in% names(x)) print(x$code)
+  if (has_code) {
+    cat("\nCODE:\n")
+    print(x$code)
+  }
 }
