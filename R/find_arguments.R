@@ -115,7 +115,7 @@ generic_arg <- function(tidy_expr, type_description, type_test,
 
   for (k in 1:length(the_args)) {
     val <- if (use_value && (is.name(the_args[[k]]) || is.call(the_args[[k]]))) {
-      rlang::eval_tidy(the_args[[k]])
+      rlang::eval_tidy(the_args[[k]], data = this_env)
     } else {
       the_args[[k]]
     }

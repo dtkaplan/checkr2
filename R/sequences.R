@@ -107,6 +107,7 @@ get_function <- function(tidy_expr) {
 }
 # Get the name being assigned to. "" if no assignment.
 get_assignment_name <- function(tidy_expr){
+  if ( ! rlang::is_lang(rlang::quo_expr(tidy_expr))) return("")
   res <- redpen::node_match(tidy_expr, `<-`(.(name), ...) ~ rlang::expr_text(name))
 
   if (is.null(res)) ""

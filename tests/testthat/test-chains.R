@@ -18,6 +18,13 @@ test_that("Can find a chain in a sequence of lines", {
   expect_true(length(r2$code) == 2) # for this example
 })
 
+test_that("Can expand single chains.", {
+  CODE <- for_checkr(quote({data(mtcars, package = "datasets");
+    mtcars %>% lm(mpg ~ cyl, data = .) %>% summary(.)}))
+  r1 <- line_chaining(CODE)
+  expand_chain(r1)
+})
+
 test_that("Can identify the first")
 
 test_that("Can handle chains with just 1 link", {
