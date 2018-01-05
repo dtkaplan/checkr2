@@ -2,38 +2,20 @@
 % Please edit documentation in R/check.R
 \name{check}
 \alias{check}
-\title{DO WE NEED THIS? Organize pattern matching possibilities}
+\title{Apply passif/failif/okif tests to an identified code object}
 \usage{
-check(..., USER_CODE = NULL, tests = NULL)
+check(tidy_code_line, ...)
 }
 \arguments{
-\item{...}{A set of pattern-matching tests}
+\item{...}{passif/failif tests to be applied}
 
-\item{USER_CODE}{will be text or bracketed expressions from the user. This
-is intended for the interfaces to other systems, e.g. learnr. It will
-be set automatically by those interfaces.}
-
-\item{tests}{Again, for interfaces to other systems. This is how they
-hand off the tests that were setup.}
+\item{ex}{the checkr_result object with a single line of code}
+}
+\value{
+a checkr_result object reflecting the outcome of the tests
 }
 \description{
-NOW THE TESTS ARE WRITTEN AS A LOGICAL SEQUENCE
-Use this to organize pattern matching outside of a system
-such as learnr. For instance, when testing statements, you can use
-check.
-}
-\examples{
-ex <- quote(sqrt(16))
-ex <- quote(3 + 3)
-check(
-  bind(ex, {..(val); .(fn)(.)},
-    failif(val != 4, "Wrong result."),
-    failif(fn \%not_same_as\% `sqrt`,
-           "You should be taking square-root, not {{fn}}."),
-    passif(TRUE, "The square root calculation was correct!")
-    ),
-  bind(ex, {.(fn)(.(a), .(b))},
-    failif(a != b, "Arguments should be equal."),
-    passif(fn \%same_as\% `+`, "Right!"))
-)
+A generic testing function for applying passif/failif tests with V and EX bindings
+to a checkr_result object. Unlike \code{line_where()}, other line functions, no patterns
+need to be provided. Just the passif/failif tests.
 }

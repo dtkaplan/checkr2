@@ -1,54 +1,17 @@
-#' DO WE NEED THIS? Organize pattern matching possibilities
+#' Apply passif/failif/okif tests to an identified code object
 #'
-#' NOW THE TESTS ARE WRITTEN AS A LOGICAL SEQUENCE
-#' Use this to organize pattern matching outside of a system
-#' such as learnr. For instance, when testing statements, you can use
-#' check.
+#' A generic testing function for applying passif/failif tests with V and EX bindings
+#' to a checkr_result object. Unlike `line_where()`, other line functions, no patterns
+#' need to be provided. Just the passif/failif tests.
 #'
+#' @param ex the checkr_result object with a single line of code
+#' @param ... passif/failif tests to be applied
 #'
-#' @param ... A set of pattern-matching tests
-#' @param USER_CODE will be text or bracketed expressions from the user. This
-#' is intended for the interfaces to other systems, e.g. learnr. It will
-#' be set automatically by those interfaces.
-#' @param tests Again, for interfaces to other systems. This is how they
-#' hand off the tests that were setup.
+#' @return a checkr_result object reflecting the outcome of the tests
 #'
-#'
-#' @examples
-#' ex <- quote(sqrt(16))
-#' ex <- quote(3 + 3)
-#' check(
-#'   bind(ex, {..(val); .(fn)(.)},
-#'     failif(val != 4, "Wrong result."),
-#'     failif(fn %not_same_as% `sqrt`,
-#'            "You should be taking square-root, not {{fn}}."),
-#'     passif(TRUE, "The square root calculation was correct!")
-#'     ),
-#'   bind(ex, {.(fn)(.(a), .(b))},
-#'     failif(a != b, "Arguments should be equal."),
-#'     passif(fn %same_as% `+`, "Right!"))
-#' )
 #' @export
-check <- function(..., USER_CODE = NULL, tests = NULL) {
-  sequence <-
-    if (is.null(tests)) rlang::quos(...)
-    else tests
-
-  any_matches <- FALSE
-  last_passing_test <- NULL
-  for (k in 1:length(sequence)) {
-    res <- rlang::eval_tidy(sequence[[k]])
-    if ( ! inherits(res, "checkr_result"))
-      stop("Can only accept arguments producing checkr-result objects, e.g. if_matches().")
-    if (res$action != "no pattern match") any_matches <- TRUE
-    # definitive result, we're done!
-    if (res$action %in% c("pass", "fail")) return(res)
-  }
-
-  res <-
-    if (any_matches) new_checkr_result() #default
-    else new_checkr_result(action = "ok", message = "No matches were found.")
-
-  return(res)
+check <- function(tidy_code_line, ...) {
+  stopifnot(inherits(tidy_code_line, "checkr_result"),
+            length(tidy_code_line$code) == 1)
+  line_binding(tidy_code_line, {.(EX); ..(V)}, ..., fail = "Something's wrong in the checkr code. Sorry.")
 }
-

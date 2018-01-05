@@ -33,8 +33,7 @@ The `checkr2` package provides such an evaluation system that provides both summ
 Locate a line ...
 
 * `line_where()` - binds V, EX, Z, F. Special case of line_binding. No passif() or failif(), just logical tests written in terms of V, EX, Z, F
-* `line_value()` - even simpler than `line_where()`, binding just V and EX. Doesn't distinquish assignments from other operations.
-* `line_calling()` - looks for a call to a function anywhere in the line. Compare: `line_where()` provides F, which is just the highest-level call. THIS DOESN'T WORK WITH ASSIGNMENT. NEED TO STRIP ANY ASSIGNMENT BEFORE SEARCHING.
+* `line_calling()` - looks for a call to a function anywhere in the line. Compare: `line_where()` provides F, which is just the highest-level call. 
 * `line_binding()` - custom bindings to patterns. (This was originally called `if_matches()`.) Can use `failif()`, etc.
 
 Within a line or expression...
@@ -58,9 +57,6 @@ Within tests ...
 * `%same_as%`
 * `%not_same_as%`
 
-To fail when a match is encountered ...
-
-* `not(line_calling(..., pass = "what to say if the undesired thing is found"))
 
 ## A first example
 
@@ -90,7 +86,7 @@ In a tutorial system like `learnr`, the system itself does the work of collectin
 The document you are reading is a vignette, not a tutorial. To play the role of the tutorial system, in this tutorial we'll write student submissions as "quoted" commands. (We'll say more about `quote()` later on. It's an ordinary base R command, albeit one that few R users  encounter.)
 
 ```{r}
-USER_CODE <- quote(15 * sin(53 * pi / 180))
+USER_CODE <- quote(y <- 15 * sin(53 * pi / 180))
 ```
 
 The first task for `checkr` is to parse the submission. The `for_checkr()` function does this along with some additional processing for when there are multiple commands in the submission.
@@ -108,7 +104,7 @@ To start very simply, let's look for a line that generates the expected numerica
 
 
 ```{r}
-line_where(CODE, abs(V - 11.98) < 0.01, fail = "Wrong numerical result.", type = is.numeric)
+line_where(CODE, is.numeric(V), abs(V - 11.98) < 0.01, message = "Wrong numerical result.")
 ```
 
 The `line_where` function scans through all the lines in `CODE`. (There's just one line in this example.) For each line, `line_where()` creates some pronouns:
@@ -133,9 +129,7 @@ It might be that all you want is to check that *some* line produces the result y
 NEED TO CHECK THIS IN LEARNR
 ```r
 CODE <- for_checkr(USER_CODE)
-line_where(CODE, abs(V - 11.98) < 0.01, 
-   fail = "Wrong numerical result.", 
-   type = is.numeric)
+line_where(CODE, abs(V - 11.98) < 0.01, message = "Wrong numerical result.")
 ```
 
 This is a very simplistic sort of feedback: right or wrong.
@@ -148,27 +142,33 @@ Depending on your purpose, you may want to examine the submitted code for the ki
 CODE <- for_checkr(USER_CODE)
 # CODE <- for_checkr(quote(11.98))
 # CODE <- for_checkr(quote(sin(53)))
-trig_functions <- c(quote(sin), quote(cos), quote(tan))
-t1 <- line_calling(CODE, qfuns = trig_functions, fail = "You should be using a trigonometric function.")
-t2 <- line_where(t1, F == quote(`*`),
-              fail = "Remember to multiply by the length of the hypotenuse")
-if (ok(t1 %and% t2)) {
-  line_where(t1, abs(V - 11.98) < 0.01, 
-                pass = "Good job!",
-                fail = "Wrong numerical result.", 
-                type = is.numeric)
-} else {
-  t1 %and% t2
-}
+# CODE <- for_checkr(quote(15 * cos(53)))
+t1 <- line_calling(CODE, sin, cos, tan, message = "You should be using a trigonometric function.")
+t1 <- line_where(t1, F == quote(`*`),
+              message = "Remember to multiply by the length of the hypotenuse")
+line_where(t1, is.numeric(V), abs(V - 11.98) < 0.01, message = "{{V}} is a wrong numerical result. It should be about 11.98.")
 ```
 
-You could do further checking, if desired. For instance, before checking the final value, perhaps make sure that the sine function specifically is being called, or if the value produced by the sine function is consistent with 53 degrees.
+Note that the input to each `line_` function is the output of a previous function. The checking will stop on the first failure, so each line is run conditional on the previous lines passing. The commented out `CODE` fragments would trigger failures with different messages.
+
+Later, we'll see how to have multiple chains exploring different possibilities. 
+
+You could do further checking, if desired. For instance, before checking the final value, perhaps make sure that the sine function specifically is being called, or if the value produced by the sine function is consistent with 53 degrees. How much checking to do is a matter of the desired pedagogical style. 
+
+
 
 ### Anticipating student errors
 
 When developing checking code, you likely have in mind some typical mistakes that a student might make. For instance, in trigonometry, it's common to confuse the cosine with the sine. You might want to include checking statements that look specifically for a particular mistake and give a tailored feedback message.
 
-
+```{r}
+CODE <- for_checkr(quote(15 * cos(53)))
+t1 <- line_calling(CODE, sin, cos, tan, message = "You should be using a trigonometric function.")
+t1 <- misconception(t1, line_calling(t1, cos), message = "Are you sure cosine is the right choice?")
+t1 <- line_where(t1, F == quote(`*`),
+              message = "Remember to multiply by the length of the hypotenuse")
+line_where(t1, is.numeric(V), abs(V - 11.98) < 0.01, message = "{{V}} is a wrong numerical result. It should be about 11.98.")
+```
 
 ### Writing functions for checking
 

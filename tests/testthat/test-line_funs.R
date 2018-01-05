@@ -1,7 +1,6 @@
 context("Line locator functions")
 
 CODE <- for_checkr(quote({x <- 2; y <- x^3; z <- y + I(x)}))
-#' line_where(tidy_code, F == "^")
 
 test_that("line_where() identifies assignment", {
   res1 <- line_where(CODE, Z == "y")
@@ -64,7 +63,7 @@ test_that("line_binding() tests terminate on first definitive pass or fail", {
   expect_true(passed(res2))
   res3 <- line_binding(CODE, `^`(..(a), ..(b)), noteif(TRUE, "A note"), failif(FALSE, "failed"), passif(TRUE, "passed") )
   expect_true(passed(res3))
-  expect_false(grepl("A note", res3$message))
+  expect_true(grepl("A note", res3$message))
   res4 <- line_binding(CODE, `^`(..(a), ..(b)), failif(FALSE, "failed"), passif(TRUE, "passed"), noteif(TRUE, "A note") )
   expect_true(passed(res4))
   expect_false(grepl("A note", res4$message))
@@ -75,3 +74,24 @@ test_that("line_binding() returns a checkr_result with code", {
   expect_true(inherits(res1, "checkr_result"))
   expect_equal(res1$code[[1]], quo(y <- x^3))
 })
+
+test_that("line_calling() works", {
+  res1 <- line_calling(CODE, `^`)
+  expect_equal(res1$code[[1]], quo(x^3))
+  res2 <- line_calling(CODE, I)
+  expect_equal(res2$code[[1]], quo(z <- y + I(x)))
+  res3 <- line_calling(CODE, sin, I, tan)
+  expect_equal(res2$code[[1]], quo(z <- y + I(x)))
+  res4 <- line_calling(CODE, sin, tan)
+  expect_true(failed(res4))
+})
+
+test_that("On failure, the returned code is that of the original input.", {
+  res1 <- line_calling(CODE, `*`, message = "No multiplication found.")
+  expect_true(length(res1$code) == 3) # all the input lines
+  res2 <- line_where(CODE, V == 100, message = "No line producing value 100.")
+  expect_true(length(res2$code) == 3)
+  res3 <- line_binding(CODE, exp(...), fail = "Exponential wasn't used.")
+  expect_true(length(res3$code) == 3)
+})
+

@@ -60,3 +60,4 @@ failif <- generic_test(pass = "fail", fail = "ok", "Sorry.")
 #' @export
 noteif <- generic_test(pass = "ok", fail = "ok", "Just a note ...")
 
+

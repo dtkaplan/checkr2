@@ -4,18 +4,18 @@
 \alias{arg_calling}
 \title{Pull out an line, expression, or argument calling a specified function}
 \usage{
-arg_calling(ex, n = 1L, fail = "", pass = "", qfuns)
+arg_calling(ex, ..., n = 1L, message = "call to function")
 }
 \arguments{
 \item{ex}{An call to be checked}
+
+\item{...}{unquoted function names}
 
 \item{n}{Look for the nth passing argument}
 
 \item{fail}{character string message on failure}
 
-\item{pass}{character string message and flag meaning success is a pass, not just an OK.}
-
-\item{qfuns}{A quoted function name or vector of names}
+\item{just_the_fun}{Flag for internal use.}
 }
 \description{
 Find an argument

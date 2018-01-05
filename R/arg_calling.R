@@ -3,10 +3,10 @@
 #' Find an argument
 #'
 #' @param ex An call to be checked
+#' @param ... unquoted function names
 #' @param n Look for the nth passing argument
 #' @param fail character string message on failure
-#' @param pass character string message and flag meaning success is a pass, not just an OK.
-#' @param qfuns A quoted function name or vector of names
+#' @param just_the_fun Flag for internal use.
 #'
 #' @examples
 #' ex <- for_checkr(quote(15 * sin(53 * pi / 180)))
@@ -20,39 +20,61 @@
 #' arg_calling(ex2, qfuns = quote(sin))
 #'
 #' @export
-arg_calling <- function(ex, n=1L, fail="", pass="", qfuns) {
-  check_qfuns(qfuns)
+arg_calling <- function(ex, ..., n=1L, message = "call to function") {
+  qfuns <- quos(...)
+  qfuns <- lapply(qfuns, FUN = quo_expr)
   test <- function(arg) {
     arg %calls% qfuns
   }
-  generic_arg(ex, "call to function", test, n = n,
-              fail = fail, pass = pass,
+  generic_arg(ex, "specified function", test, n = n,
+              fail = message,
               use_value = FALSE)
 }
 
 #' @export
-line_calling <- function(ex, n=1L, fail = "", pass = "", qfuns, just_the_fun = FALSE) {
+line_calling <- function(ex, ..., n=1L, message = "Didn't find matching function.", just_the_fun = FALSE) {
+  qfuns <- quos(...)
+  qfuns <- lapply(qfuns, FUN = quo_expr)
   check_qfuns(qfuns)
-  # is it at the top level?
-  if ( ! inherits(quo_expr(ex$code[[1]]), "call")) {
-    return(new_checkr_result(action = "fail", message = fail))
-  }
-  top_level <- redpen::node_match(ex$code[[1]], .(fn)(...) ~ fn )
-  res <- if (is.null(top_level)) { # the expression isn't a call
-    return(new_checkr_result(action = "fail", message = fail))
-  } else { # it is a call
-    if (c(top_level) %in% c(qfuns)) ex
-    else arg_calling(ex, n=n, fail = fail, pass = pass, qfuns)
-  }
-  if (ok(res) && ! just_the_fun) res$code <- ex$code
 
-  res
+  stopifnot(inherits(ex, "checkr_result"))
+  if (failed(ex)) return(ex) # short circuit on failure
+
+  # Loop over the lines
+  for (m in seq_along(ex$code)) {
+    this_line <- skip_assign(ex$code[[m]])
+    if ( ! inherits(rlang::quo_expr(this_line), "call")) {
+      next;
+    }
+    top_level <- redpen::node_match(this_line, .(fn)(...) ~ fn )
+    res <-
+      if (is.null(top_level)) { # the expression isn't a call
+        next
+      } else { # it is a call
+        if (c(top_level) %in% c(qfuns)) {
+          ex$code <- list(this_line)
+          return(ex)
+        }
+        else {
+          arg_calling(this_line, ..., n=n, fail = message)
+        }
+      }
+    if (ok(res)) {
+      if (!just_the_fun) {
+        res$code <- list(ex$code[[m]])
+      }
+      return(res)
+    }
+  }
+
+  # If we got here, there wasn't a match
+  new_checkr_result(action = "fail", message = message, code = ex$code)
 }
 
 #' @export
-call_to <- function(ex, n=1L, fail="", pass="", qfuns) {
-  line_calling(ex, n=n, fail = fail, pass = pass,
-               qfuns, just_the_fun = TRUE)
+call_to <- function(ex, ..., n=1L, message="Didn't find specified call to function.") {
+  line_calling(ex, ..., n=n, message = message,
+               just_the_fun = TRUE)
 }
 
 

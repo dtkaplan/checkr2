@@ -75,14 +75,9 @@
 
 
 #' @export
-line_value <- function(tidy_code, ..., fail = "") {
-  line_binding(tidy_code, {..(V); .(EX)}, ..., fail = fail)
-}
-
-#' @export
 line_binding <- function(tidy_code, keys, ..., fail = "No match found to specified patterns.") {
   stopifnot(inherits(tidy_code, "checkr_result"))
-  if (failed(tidy_code)) return(tidy_code)
+  if (failed(tidy_code)) return(tidy_code) # short circuit on failed input
 
   code <- tidy_code$code
   keys <- rlang::enexpr(keys)

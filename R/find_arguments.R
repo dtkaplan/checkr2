@@ -12,6 +12,7 @@
 #' for_checkr(), only the first expression is checked.
 #'
 #' @param ex the tidy expression to check
+#' @param ... passif/failif/okif tests
 #' @param nm the name of an argument as a character string (or a regex).
 #' @param n an integer. If there's more than one matching argument, which one do
 #' you want.
@@ -30,22 +31,27 @@
 
 #' @export
 formula_arg <- function(ex, ..., n=1L, fail = "") {
-  res <- generic_arg(ex, "formula e.g. a ~ b", is_formula, n = n, fail = fail)
+  res <- generic_arg(ex, "a formula e.g. a ~ b", is_formula, n = n, fail = fail)
   line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
 }
 #' @export
 data_arg <- function(ex, ..., n=1L, fail = "") {
-  res <- generic_arg(ex, "data frame", is.data.frame, n = n, fail = fail)
+  res <- generic_arg(ex, "a data frame", is.data.frame, n = n, fail = fail)
   line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
 }
 #' @export
 matrix_arg <- function(ex, ..., n=1L, fail = "") {
-  res <- generic_arg(ex, "matrix", is.matrix, n = n, fail = fail)
+  res <- generic_arg(ex, "a matrix", is.matrix, n = n, fail = fail)
   line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
 }
 #' @export
 vector_arg <- function(ex, ...,  n=1L, fail = "") {
-  res <- generic_arg(ex, "vector", is.vector, n = n, fail = fail)
+  res <- generic_arg(ex, "a vector", is.vector, n = n, fail = fail)
+  line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
+}
+#' @export
+character_arg <- function(ex, ...,  n=1L, fail = "") {
+  res <- generic_arg(ex, "a character string", is.character, n = n, fail = fail)
   line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
 }
 #' @export
@@ -55,17 +61,17 @@ numeric_arg <- function(ex, ..., n=1L, fail = "") {
 }
 #' @export
 list_arg <- function(ex, ...,  n=1L, fail = "") {
-  res <- generic_arg(ex, "list", is.list, n = n, fail = fail)
+  res <- generic_arg(ex, "a list", is.list, n = n, fail = fail)
   line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
 }
 #' @export
 function_arg <- function(ex, ..., n=1L, fail = "") {
-  res <- generic_arg(ex, "function", is.function, n = n, fail = fail)
+  res <- generic_arg(ex, "a function", is.function, n = n, fail = fail)
   line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
 }
 #' @export
 table_arg <- function(ex, ..., n=1L, fail = "") {
-  res <- generic_arg(ex, "table", is.table, n = n, fail = fail)
+  res <- generic_arg(ex, "a table", is.table, n = n, fail = fail)
   line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
 }
 
@@ -74,15 +80,21 @@ generic_arg <- function(tidy_expr, type_description, type_test,
   # Can also take results straight from for_checkr()
   if (inherits(tidy_expr, "checkr_result")) {
     # pass along any input that is already failed.
-    if (tidy_expr$action == "fail") return(tidy_expr)
+    if (failed(tidy_expr)) return(tidy_expr)
+    if (length(tidy_expr$code) > 1) stop("Narrow down to a single line of code before calling.")
     code <- tidy_expr$code[[1]]
+  } else {
+    code <- tidy_expr # it was a straight quosure, not a checkr_result
   }
+
   if (fail == "") {
+    # Pre-form the failure message
     fail <- paste(rlang::expr_text(rlang::quo_expr(code)),
-                  "doesn't contain an argument that is a",
+                  "doesn't contain an argument that is",
                   type_description)
   }
-  bad_return <- new_checkr_result(action = "fail", message = fail, code = code)
+  bad_return <- new_checkr_result(action = "fail", message = fail, code = tidy_expr$code)
+
   if ( ! rlang::is_lang(code)) {
     # if it's the right kind of object, just return that
     if (type_test(code)) {
@@ -164,7 +176,8 @@ named_arg <- function(ex, nm, ..., fail = "") {
   res <-
     if (length(the_arg) == 0) {
       new_checkr_result(action = "fail",
-                        message = paste0("could not find an argument named '", nm, "'"))
+                        message = paste0("could not find an argument named '", nm, "'"),
+                        code = ex$code)
     } else {
       # we found a match, return it along with the environment
       code <- list(rlang::new_quosure(argv[[the_arg]], env = environment(code)))

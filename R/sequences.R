@@ -24,12 +24,14 @@
 #' @rdname sequences
 #' @export
 line_where <- function(tidy_code, ..., message = "") {
+  stopifnot(inherits(tidy_code, "checkr_result"))
+  if (failed(tidy_code)) return(tidy_code) # short circuit on failure
   res <- matching_line(tidy_code, ..., message = message)
   if (res$n == 0) {
     the_message <-
       if (nchar(message)) res$message
       else "Didn't find a line passing tests."
-      new_checkr_result(action = "fail", message = the_message)
+      new_checkr_result(action = "fail", message = the_message, code = tidy_code$code)
   }
   else {
     # return just the RHS if assignment

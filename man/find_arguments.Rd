@@ -15,6 +15,8 @@ formula_arg(ex, ..., n = 1L, fail = "")
 \arguments{
 \item{ex}{the tidy expression to check}
 
+\item{...}{passif/failif/okif tests}
+
 \item{n}{an integer. If there's more than one matching argument, which one do
 you want.}
 

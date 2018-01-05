@@ -34,7 +34,6 @@ not <- function(e1) {
 #' ex %calls% quote(sin)
 #' ex %calls% c(quote(sin), quote(cos))
 #' ex %calls% c(quote(tan), quote(cos))
-# DOES IT MAKE SENSE TO HAVE THIS now that there is `line_calling()`
 #' @export
 "%calls%" <- function(ex, funs) {
   # is it a call at the highest level?
