@@ -170,6 +170,13 @@ t1 <- line_where(t1, F == quote(`*`),
 line_where(t1, is.numeric(V), abs(V - 11.98) < 0.01, message = "{{V}} is a wrong numerical result. It should be about 11.98.")
 ```
 
+### Testing chains
+
+* If you insist that a particular statement be a chain, you can extract that statement with `line_chaining()`. Then use `expand_chain()` to turn that into a sequence of ordinary statements that can be checked in the ordinary way.
+* By default, use `expand_all_chains()` to turn the code into a single sequence that expands all the chains.
+
+So, if you're anticipating that a chain might be used and that you want to analyze the individual elements of that chain, thinking about using `expand_all_chains()` directly on the `CODE`.
+
 ### Writing functions for checking
 
 The functions provided by `checkr` can be composed into higher-level functions in the ordinary way. We'll call these *`checkr` functions*.  Keep in mind: that both the input to and output from a `checkr` function should be an object of type `checkr_result`. (There can be other inputs as well, for instance, a specified value.)

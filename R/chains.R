@@ -26,7 +26,7 @@ line_chaining <- function(tidy_code, n = 1L) {
 #' @export
 expand_chain <- function(tidy_code) {
   stopifnot(inherits(tidy_code, "checkr_result"))
-  stopifnot(is_chain(tidy_code$code[[1]]))
+  if ( ! is_chain(tidy_code$code[[1]])) return(tidy_code) # already expanded
   if (failed(tidy_code)) return(tidy_code) # short circuit on failure
   CP <- magrittr:::split_chain(rlang::quo_expr(tidy_code$code[[1]]))
   new_code <- list()
@@ -43,6 +43,20 @@ expand_chain <- function(tidy_code) {
   return(tidy_code)
 }
 
+# expand all the chains in the code of a checkr_result
+#' @export
+expand_all_chains <- function(tidy_code) {
+  stopifnot(inherits(tidy_code, "checkr_result"))
+  if (failed(tidy_code)) return(tidy_code) # short circuit on failure
+  newcode <- list()
+  for (m in seq_along(tidy_code$code)) {
+    expanded <- expand_chain(new_checkr_result(action = "ok", code = tidy_code$code[m]))
+    newcode <- c(newcode, expanded$code)
+  }
+  tidy_code$code <- newcode
+  
+  tidy_code
+}
 
 #' @export
 # convert a chain into a list of expressions
