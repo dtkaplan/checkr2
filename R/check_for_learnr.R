@@ -60,7 +60,6 @@ check_for_learnr <-
     # That happens when there is a check-code chunk.
     # I want to turn it off more generally.
     if (! is.null(envir_result)) {
-      cat("We're checking it now.\n")
       res <- parse_check(user_code)
       if ( ! res$correct) { # return a list in the right form for learnr
         return(list(correct = FALSE, type = "error", location = "prepend",
