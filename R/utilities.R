@@ -143,3 +143,13 @@ print.checkr_result <- function(x, ...) {
     print(x$code)
   }
 }
+
+#' @export
+print_function_contents <- function(fun, just_the_body = TRUE) {
+  body_text <- capture.output(body(fun))
+  body_text <- gsub("^ {4}", "", body_text[-c(1, length(body_text))])
+  line_nums <- paste0("[", as.character(1:length(body_text)), "]")
+  line_nums <- formatC(line_nums, width = max(nchar(line_nums)))
+
+  cat(paste(line_nums, body_text, collapse = "\n"))
+}
