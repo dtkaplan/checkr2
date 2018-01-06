@@ -12,14 +12,47 @@ tutorial_options(exercise.checker = checkr2::check_for_learnr)
 # tutorial_options(exercise.checker = function(...) cat("Bogus checker\n"))
 ```
 
+## What's this document about?
 
-## Coding problems
+This is a `learnr` tutorial to display some examples of code-checking with the `checkr2` package.
 
-### Addition 
+As you may know, `learnr` is a system for creating and distributing interactive documents, particularly documents that provide exercise-boxes where the reader can type and execute R code.
 
-*Here's a simple exercise with an empty code chunk provided for entering the answer.*
+`Checkr2` is a package that provides feedback about the code that is being executed in a `learnr` exercise box.
 
-Write the R code to add two plus two:
+### Hello, World!
+
+"Hello, World!" is a famous introductory example in programming. In this task, you will write the one-line version of "Hello, World!" in R. Your code should cause the message `Hello, World!` to appear. 
+
+The box below has been instrumented with `checkr` statements intended to guide the user to a correct answer. Exactly what "guide the user" means is ambiguous. Play around with various possible answers and see if you agree that the `checkr` statement I choose are reasonable.
+
+```{r hello-world-check}
+code <- for_checkr(USER_CODE)
+#code <- for_checkr(quote("\"Hello, World!\""))
+#code <- for_checkr(quote(cat("Hello, World!")))
+#code <- for_checkr(quote(print("Hello, World")))
+#code <- for_checkr(quote(cat("hello")))
+#code <- for_checkr(quote(cat("Hello, world!")))
+res <- misconception(code, line_where(code, is.null(F)), 
+                    "Just typing the string doesn't do it. Note that the output has quotes and is formatted as an output, not a simple message." )
+res <- misconception(res, line_where(res, F == print), 
+                     message = "Using print() isn't right. True, that's the way character strings are displayed, but the format of the display is as a quoted output and not just a simple message.")
+res <- line_where(res, F == cat, message = "Try the cat() function.")
+check(arg_number(res, 1), passif(V == "Hello, World!", "Good job!"),
+      failif(tolower(V) == "hello, world!", "Get the capitalization right!"),
+      failif(TRUE, "The string should be 'Hello, World!', not '{{V}}'."))
+```
+
+```{r hello-world, exercise = TRUE}
+
+```
+
+### Two plus two
+
+Not as famous as "Hello, World!" is the first example in the `learnr` documentation:
+
+> Write the code to add two and two.
+
 
 ```{r two-plus-two, exercise=TRUE}
 
@@ -30,24 +63,16 @@ Write the R code to add two plus two:
 ```
 
 ```{r two-plus-two-check}
-USER_CODE <- "(2 + 2)"
-CODE <- for_checkr(USER_CODE)
-L1 <- line_where(CODE, F == `+`, fail = "Use +, not {{F}}.")
-t1 <- bind(L1, {..(val); .(fn)(..(a), ..(b))}, 
-           failif(a != b, "The two arguments should be the same. You have {{a}} and {{b}}."),
-           failif(a != 2, "Sorry. The first argument must be 2."),
-           failif(b != 2, "No luck. The second argument should also be 2.")
-)
-# return(t1)
-t2 <- line_value(L1, failif(n_args(EX) != 2, "{{func_of(EX)}}() is a function of {{n_args(EX)}} argument(s). You want a function of two arguments that adds its arguments.{{EX}} gives {{V}}") )
-
-t3 <- line_value(L1, passif(V == 4, "Good")) 
-# provide a success marker among the tests
-# or use resolve_ok() on the result
-
-# Overall result
-t1 %and% t2 %and% t3
+res <- for_checkr(USER_CODE)
+res <- line_where(res, V == 4, message = "The result should be 4, not {{V}}.")
+res <- line_where(res, F == `+`, message = "Think about what function corresponds to 'addition'. It isn't {{F}}.")
+arg_number(res, 1, failif(V != 2, "The first argument should be 2.")) %and%
+arg_number(res, 2, failif(V != 2, "The second argument should be 2."),
+           passif(TRUE, "Right!"))
 ```
+
+
+## Coding problems
 
 ### Using `rep()`
 

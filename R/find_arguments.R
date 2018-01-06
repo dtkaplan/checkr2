@@ -142,7 +142,7 @@ generic_arg <- function(tidy_expr, type_description, type_test,
 arg_number <- function(ex, n = 1L, ..., fail = "") {
   stopifnot(inherits(ex, "checkr_result"))
   if (failed(ex)) return(ex)
-  code <- ex$code[[1]]
+  code <- simplify_ex(ex$code[[1]])
   argv <- rlang::lang_args(code)
   res <-
     if (length(argv) < n) {

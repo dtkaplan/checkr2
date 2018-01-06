@@ -32,7 +32,10 @@ for_checkr <- function(exprs) {
     if (inherits(so_far, "try-error")) {
       return(checkr_result_on_error(so_far, exprs[[m]]))
     } else {
-      values[[m - 1]] <- so_far
+      values[[m - 1]] <- if(!is.null(so_far)) so_far else NA
+      # The if deals with the possibility that the value is NULL.
+      # Assigned directly to values[[m-1]], this would delete the element.
+      # So NA is substituted.
     }
     code[[m - 1]] <- rlang::new_quosure(exprs[[m]], env = prev_env)
     prev_env <- next_env

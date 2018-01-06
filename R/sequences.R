@@ -100,10 +100,9 @@ matching_line <- function(tidy_code, ..., message = "", type = NULL, type_text="
 
 # Get the lead function (ignoring any assignment)
 get_function <- function(tidy_expr) {
-  #ex <- skip_assign(rlang::quo_expr(tidy_expr))
   ex <- rlang::quo_expr(skip_assign(tidy_expr))
   if (rlang::is_lang(ex)) rlang::lang_head(ex)
-  else ex
+  else NULL
 }
 # Get the name being assigned to. "" if no assignment.
 get_assignment_name <- function(tidy_expr){

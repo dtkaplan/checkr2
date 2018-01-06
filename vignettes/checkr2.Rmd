@@ -28,7 +28,13 @@ The `checkr2` package provides such an evaluation system that provides both summ
 
 `Checkr2` can be used in a stand-alone mode or as embedded in a `learnr` tutorial. 
 
-## A catalog of tests
+## A catalog of functions
+
+Process the submitted code to prepare for testing:
+
+* `for_checkr(USER_CODE)` will take the code directly from `learnr`. Or, for development purposes, you can set `USER_CODE` yourself to be either a character string containing the code or a quoted line or set of lines. (The set of lines for `quote()` must be in curly braces.)
+* `expand_chain(CODE)` once you've identified a line of interest that happens to be a chain, you may want to do checks within that line. `expand_chain(CODE)` turns the sequence of statements in a chain into individual statements, and provides a binding in each statement for the value of `.` that will be the input to that statement.
+* `expend_all_chains(CODE)` takes a set of statements and expands all the chains in it, so that it can be treated as an ordinary sequence of statements.
 
 Locate a line ...
 
