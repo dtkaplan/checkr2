@@ -5,7 +5,7 @@
 #' @param ex An call to be checked
 #' @param ... unquoted function names
 #' @param n Look for the nth passing argument
-#' @param fail character string message on failure
+#' @param message character string message on failure
 #' @param just_the_fun Flag for internal use.
 #'
 #' @examples
@@ -27,7 +27,7 @@ arg_calling <- function(ex, ..., n=1L, message = "call to function") {
     arg %calls% qfuns
   }
   generic_arg(ex, "specified function", test, n = n,
-              fail = message,
+              message = message,
               use_value = FALSE)
 }
 
@@ -56,7 +56,7 @@ line_calling <- function(ex, ..., n=1L, message = "Didn't find matching function
           return(ex)
         }
         else {
-          arg_calling(this_line, ..., n=n, fail = message)
+          arg_calling(this_line, ..., n=n, message = message)
         }
       }
     if (ok(res)) {

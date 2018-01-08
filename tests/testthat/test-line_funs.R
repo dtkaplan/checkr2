@@ -4,22 +4,22 @@ CODE <- for_checkr(quote({x <- 2; y <- x^3; z <- y + I(x)}))
 
 test_that("line_where() identifies assignment", {
   res1 <- line_where(CODE, Z == "y")
-  expect_equal(res1$code[[1]], quo(x^3))
+  expect_equal(res1$code[[1]], quo(y <- x^3))
 })
 
 test_that("line_where() identifies a function", {
   res1 <- line_where(CODE, F == `^`)
-  expect_equal(res1$code[[1]], quo(x^3))
+  expect_equal(res1$code[[1]], quo(y <- x^3))
 })
 
 test_that("line_where() identifies a line value", {
   res1 <- line_where(CODE, V == 8)
-  expect_equal(res1$code[[1]], quo(x^3))
+  expect_equal(res1$code[[1]], quo(y <- x^3))
 })
 
 test_that("line_where() identifies an expression", {
   res1 <- line_where(CODE, EX == quo(x^3))
-  expect_equal(res1$code[[1]], quo(x^3))
+  expect_equal(res1$code[[1]], quo(y <- x^3))
 })
 
 test_that("line_where() and line_binding() return code in the form of a list of quosures.", {
@@ -91,7 +91,7 @@ test_that("On failure, the returned code is that of the original input.", {
   expect_true(length(res1$code) == 3) # all the input lines
   res2 <- line_where(CODE, V == 100, message = "No line producing value 100.")
   expect_true(length(res2$code) == 3)
-  res3 <- line_binding(CODE, exp(...), fail = "Exponential wasn't used.")
+  res3 <- line_binding(CODE, exp(...), message = "Exponential wasn't used.")
   expect_true(length(res3$code) == 3)
 })
 

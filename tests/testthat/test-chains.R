@@ -10,11 +10,11 @@ test_that("Can identify an expression as a chain ", {
 test_that("Can find a chain in a sequence of lines", {
   CODE <- for_checkr(quote({data(mtcars, package = "datasets"); mtcars %>% lm(mpg ~ cyl, data = .)}))
   r1 <- line_chaining(CODE)
-  expect_true(passed(r1))
+  expect_false(failed(r1))
   expect_true(length(r1$code) == 1)
-  expect_equal(rlang::quo_expr(r1$code[[1]]), quote(lm(mpg ~ hp, data = mtcars)))
+  expect_equal(rlang::quo_expr(r1$code[[1]]), quote(mtcars %>% lm(mpg ~ cyl, data = .)))
   r2 <- line_chaining(CODE, n = 2)
-  expect_false(passed(r2))
+  expect_true(failed(r2))
   expect_true(length(r2$code) == 2) # for this example
 })
 
@@ -22,7 +22,10 @@ test_that("Can expand single chains.", {
   CODE <- for_checkr(quote({data(mtcars, package = "datasets");
     mtcars %>% lm(mpg ~ cyl, data = .) %>% summary(.)}))
   r1 <- line_chaining(CODE)
-  expand_chain(r1)
+  r1 <- expand_chain(r1)
+  expect_equal(length(r1$code), 3)
+  expect_equal(quo_expr(r1$code[[1]]), quote(mtcars))
+  expect_equal(quo_expr(r1$code[[3]]), quote(summary(.)))
 })
 
 test_that("Can expand the chains in a sequence of lines", {
@@ -38,8 +41,9 @@ test_that("Can handle chains with just 1 link", {
   CODE <- for_checkr(quote({data(mtcars, package = "datasets");
     mtcars %>% lm(mpg ~ cyl, data = .) }))
   r1 <- line_chaining(CODE)
-  r2 <- arg_calling(r1, lm)
-  r3 <- data_arg(r2, lm)
-  expect_false(failed(r3))
-  expect_equal(quo_expr(r3$code[[1]]), quo(mtcars))
+  r2 <- expand_chain(r1)
+  r3 <- line_calling(r2, lm)
+  r4 <- data_arg(r3, failif( !identical(V, mtcars), "Wasn't mtcars") )
+  expect_false(failed(r4))
+  expect_equal(eval_tidy(r4$code[[1]]), mtcars)
 })

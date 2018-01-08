@@ -13,7 +13,7 @@ arg_calling(ex, ..., n = 1L, message = "call to function")
 
 \item{n}{Look for the nth passing argument}
 
-\item{fail}{character string message on failure}
+\item{message}{character string message on failure}
 
 \item{just_the_fun}{Flag for internal use.}
 }

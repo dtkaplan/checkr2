@@ -10,8 +10,8 @@
 #' @return a checkr_result object reflecting the outcome of the tests
 #'
 #' @export
-check <- function(tidy_code_line, ...) {
+check <- function(tidy_code_line, ..., message = "Sorry!") {
   stopifnot(inherits(tidy_code_line, "checkr_result"),
             length(tidy_code_line$code) == 1)
-  line_binding(tidy_code_line, {.(EX); ..(V)}, ..., fail = "Something's wrong in the checkr code. Sorry.")
+  line_binding(tidy_code_line, {.(EX); ..(V)}, ..., message = message)
 }

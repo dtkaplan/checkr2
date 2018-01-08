@@ -16,7 +16,7 @@
 #' @param nm the name of an argument as a character string (or a regex).
 #' @param n an integer. If there's more than one matching argument, which one do
 #' you want.
-#' @param fail a character string. If this is not empty (i.e. `""`) then a fail result
+#' @param message a character string. If this is not empty (i.e. `""`) then a fail result
 #' will be generated if the argument isn't found. Default: empty.
 #'
 #' @examples
@@ -30,70 +30,70 @@
 #' arg_number(code, 3)
 
 #' @export
-formula_arg <- function(ex, ..., n=1L, fail = "") {
-  res <- generic_arg(ex, "a formula e.g. a ~ b", is_formula, n = n, fail = fail)
-  line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
+formula_arg <- function(ex, ..., n=1L, message = "") {
+  res <- generic_arg(ex, "a formula e.g. a ~ b", is_formula, n = n, message = message)
+  line_binding(res, {.(EX); ..(V)}, ..., message = message)
 }
 #' @export
-data_arg <- function(ex, ..., n=1L, fail = "") {
-  res <- generic_arg(ex, "a data frame", is.data.frame, n = n, fail = fail)
-  line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
+data_arg <- function(ex, ..., n=1L, message = "") {
+  res <- generic_arg(ex, "a data frame", is.data.frame, n = n, message = message)
+  line_binding(res, {.(EX); ..(V)}, ..., message = message)
 }
 #' @export
-matrix_arg <- function(ex, ..., n=1L, fail = "") {
-  res <- generic_arg(ex, "a matrix", is.matrix, n = n, fail = fail)
-  line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
+matrix_arg <- function(ex, ..., n=1L, message = "") {
+  res <- generic_arg(ex, "a matrix", is.matrix, n = n, message = message)
+  line_binding(res, {.(EX); ..(V)}, ..., message = message)
 }
 #' @export
-vector_arg <- function(ex, ...,  n=1L, fail = "") {
-  res <- generic_arg(ex, "a vector", is.vector, n = n, fail = fail)
-  line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
+vector_arg <- function(ex, ...,  n=1L, message = "") {
+  res <- generic_arg(ex, "a vector", is.vector, n = n, message = message)
+  line_binding(res, {.(EX); ..(V)}, ..., message = message)
 }
 #' @export
-character_arg <- function(ex, ...,  n=1L, fail = "") {
-  res <- generic_arg(ex, "a character string", is.character, n = n, fail = fail)
-  line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
+character_arg <- function(ex, ...,  n=1L, message = "") {
+  res <- generic_arg(ex, "a character string", is.character, n = n, message = message)
+  line_binding(res, {.(EX); ..(V)}, ..., message = message)
 }
 #' @export
-numeric_arg <- function(ex, ..., n=1L, fail = "") {
-  res <- generic_arg(ex, "numeric", is.numeric, n = n, fail = fail)
-  line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
+numeric_arg <- function(ex, ..., n=1L, message = "") {
+  res <- generic_arg(ex, "numeric", is.numeric, n = n, message = message)
+  line_binding(res, {.(EX); ..(V)}, ..., message = message)
 }
 #' @export
-list_arg <- function(ex, ...,  n=1L, fail = "") {
-  res <- generic_arg(ex, "a list", is.list, n = n, fail = fail)
-  line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
+list_arg <- function(ex, ...,  n=1L, message = "") {
+  res <- generic_arg(ex, "a list", is.list, n = n, message = message)
+  line_binding(res, {.(EX); ..(V)}, ..., message = message)
 }
 #' @export
-function_arg <- function(ex, ..., n=1L, fail = "") {
-  res <- generic_arg(ex, "a function", is.function, n = n, fail = fail)
-  line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
+function_arg <- function(ex, ..., n=1L, message = "") {
+  res <- generic_arg(ex, "a function", is.function, n = n, message = message)
+  line_binding(res, {.(EX); ..(V)}, ..., message = message)
 }
 #' @export
-table_arg <- function(ex, ..., n=1L, fail = "") {
-  res <- generic_arg(ex, "a table", is.table, n = n, fail = fail)
-  line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
+table_arg <- function(ex, ..., n=1L, message = "") {
+  res <- generic_arg(ex, "a table", is.table, n = n, message = message)
+  line_binding(res, {.(EX); ..(V)}, ..., message = message)
 }
 
 generic_arg <- function(tidy_expr, type_description, type_test,
-                        fail = "", pass = "", n = 1L, use_value = TRUE) {
+                        message = "", pass = "", n = 1L, use_value = TRUE) {
   # Can also take results straight from for_checkr()
   if (inherits(tidy_expr, "checkr_result")) {
     # pass along any input that is already failed.
     if (failed(tidy_expr)) return(tidy_expr)
     if (length(tidy_expr$code) > 1) stop("Narrow down to a single line of code before calling.")
-    code <- tidy_expr$code[[1]]
+    code <- skip_assign(tidy_expr$code[[1]])
   } else {
     code <- tidy_expr # it was a straight quosure, not a checkr_result
   }
 
-  if (fail == "") {
+  if (message == "") {
     # Pre-form the failure message
     fail <- paste(rlang::expr_text(rlang::quo_expr(code)),
                   "doesn't contain an argument that is",
                   type_description)
   }
-  bad_return <- new_checkr_result(action = "fail", message = fail, code = tidy_expr$code)
+  bad_return <- new_checkr_result(action = "fail", message = message, code = tidy_expr$code)
 
   if ( ! rlang::is_lang(code)) {
     # if it's the right kind of object, just return that
@@ -139,7 +139,7 @@ generic_arg <- function(tidy_expr, type_description, type_test,
 }
 
 #' @export
-arg_number <- function(ex, n = 1L, ..., fail = "") {
+arg_number <- function(ex, n = 1L, ..., message = "") {
   stopifnot(inherits(ex, "checkr_result"))
   if (failed(ex)) return(ex)
   code <- simplify_ex(ex$code[[1]])
@@ -155,20 +155,20 @@ arg_number <- function(ex, n = 1L, ..., fail = "") {
       code <- list(rlang::new_quosure(argv[[n]], env = environment(code)))
       new_checkr_result("ok", code = code)
     }
-  line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
+  line_binding(res, {.(EX); ..(V)}, ..., message = message)
 }
 
 #' @export
-first_arg <- function(ex, ..., fail = "")
-  arg_number(ex, ..., n=1L, fail = fail)
+first_arg <- function(ex, ..., message = "")
+  arg_number(ex, ..., n=1L, message = message)
 
 #' @export
-named_arg <- function(ex, nm, ..., fail = "") {
+named_arg <- function(ex, nm, ..., message = "") {
   if ( ! is.character(nm)) stop("Must specify argument name as a string.")
   stopifnot(inherits(ex, "checkr_result"))
   # pass along any input that is already failed.
   if (failed(ex)) return(ex)
-  code <- ex$code[[1]]
+  code <- simplify_ex(ex$code[[1]])
 
   arg_names <- rlang::lang_args_names(code)
   argv <- rlang::lang_args(code)
@@ -183,5 +183,5 @@ named_arg <- function(ex, nm, ..., fail = "") {
       code <- list(rlang::new_quosure(argv[[the_arg]], env = environment(code)))
       new_checkr_result("ok", code = code)
     }
-  line_binding(res, {.(EX); ..(V)}, ..., fail = fail)
+  line_binding(res, {.(EX); ..(V)}, ..., message = message)
 }

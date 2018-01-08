@@ -10,7 +10,7 @@
 \alias{first_arg}
 \title{Functions to extract an the argument from an expression}
 \usage{
-formula_arg(ex, ..., n = 1L, fail = "")
+formula_arg(ex, ..., n = 1L, message = "")
 }
 \arguments{
 \item{ex}{the tidy expression to check}
@@ -20,7 +20,7 @@ formula_arg(ex, ..., n = 1L, fail = "")
 \item{n}{an integer. If there's more than one matching argument, which one do
 you want.}
 
-\item{fail}{a character string. If this is not empty (i.e. \code{""}) then a fail result
+\item{message}{a character string. If this is not empty (i.e. \code{""}) then a fail result
 will be generated if the argument isn't found. Default: empty.}
 
 \item{nm}{the name of an argument as a character string (or a regex).}

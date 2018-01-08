@@ -7,7 +7,7 @@
 \title{Looks for a match to patterns.}
 \usage{
 line_binding(tidy_code, keys, ...,
-  fail = "No match found to specified patterns.")
+  message = "No match found to specified patterns.")
 }
 \arguments{
 \item{keys}{an R statement used for pattern matching and binding, based
@@ -20,7 +20,7 @@ with \code{passif()}, \code{failif()}, \code{noteif()}, \code{test_binding()}, a
 defined in \code{keys}, for each line the name of the object assigned to will be bound to the pronoun \code{Z}.  (\code{Z} will be \code{""}
 when there's no assignment in the line.)}
 
-\item{fail}{a character string message. By default, the function
+\item{message}{a character string message. By default, the function
 will return an "ok" checkr_result if the patterns don't match. If
 fail is not empty, then a "fail" checkr_result will be returned with
 the value of fail as the message.}
@@ -60,10 +60,10 @@ ex <- for_checkr(quote(z <- 2+2))
 wrong1 <- for_checkr(quote(2 - 2))
 wrong2 <- for_checkr(quote(2*2))
 line_binding(ex, 2 + 2, passif(TRUE, "The patterns matched."))
-line_binding(ex, 3 + 3, fail = "wasn't 3 + 3")
+line_binding(ex, 3 + 3, message = "wasn't 3 + 3")
 line_binding(ex, 2 + 2, passif(Z == "z", "Assignment to {{Z}}."))
 line_binding(ex, 3 + 3, passif(TRUE, "not a match"))
-line_binding(ex, 3 + 3, passif(TRUE, "not a match"), fail = "not a match")
+line_binding(ex, 3 + 3, passif(TRUE, "not a match"), message = "not a match")
 line_binding(ex, 2 + ..(y), must(y != 2, "{{expression_string}} wasn't right. Second argument should not be {{y}}"))
 line_binding(ex, `+`(.(a), .(b)), passif(TRUE, "Found a match."))
 line_binding(ex, `+`(.(a), .(b)),

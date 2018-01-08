@@ -4,7 +4,7 @@
 \alias{check}
 \title{Apply passif/failif/okif tests to an identified code object}
 \usage{
-check(tidy_code_line, ...)
+check(tidy_code_line, ..., message = "Sorry!")
 }
 \arguments{
 \item{...}{passif/failif tests to be applied}

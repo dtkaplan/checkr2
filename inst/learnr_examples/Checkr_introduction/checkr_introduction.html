@@ -161,6 +161,14 @@ two_plus_two_check <- function(USER_CODE) {
   arg_number(res, 1, failif(V != 2, "The first argument should be 2, not {{EX}}."),
              passif(TRUE, "Yes, that's it!"))
 }
+
+hello_fun_strict <- function(USER_CODE) {
+  code <- for_checkr(USER_CODE)
+  line_binding(code, 
+               cat("Hello, World!"),  # a pattern with no flexibility.
+               passif(TRUE, "That's right."),
+               fail = "No. Try aain.")
+}
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">

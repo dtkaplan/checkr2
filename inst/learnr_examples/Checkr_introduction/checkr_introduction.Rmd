@@ -39,6 +39,14 @@ two_plus_two_check <- function(USER_CODE) {
   arg_number(res, 1, failif(V != 2, "The first argument should be 2, not {{EX}}."),
              passif(TRUE, "Yes, that's it!"))
 }
+
+hello_fun_strict <- function(USER_CODE) {
+  code <- for_checkr(USER_CODE)
+  line_binding(code, 
+               cat("Hello, World!"),  # a pattern with no flexibility.
+               passif(TRUE, "That's right."),
+               fail = "No. Try aain.")
+}
 ```
 
 ## What's this document about?
@@ -59,9 +67,6 @@ Press "Run" to try out your command to make sure it does what you were expecting
 
 The box below has been instrumented with `checkr` statements intended to guide the user to a correct answer. Exactly what "guide the user" means is ambiguous. Play around with various possible answers and see if you agree that the `checkr` statement I choose are helpful.
 
-```{r}
-
-```
 
 ```{r eval = FALSE, echo = FALSE}
 hello_check(quote("\"Hello, World!\""))
@@ -100,16 +105,6 @@ Depending on the submission, any of the checks on lines 2, 5, 9, and 10 might fa
 An instructor with a different pedagogical approach might prefer to structure the checking in an entirely different way. For instance, here are `checkr` statements that simply tell the user whether or not the submission did what was requested:
 
 ```{r echo = FALSE}
-hello_fun_strict <- function(USER_CODE) {
-  code <- for_checkr(USER_CODE)
-  line_binding(code, 
-               cat("Hello, World!"),  # a pattern with no flexibility.
-               passif(TRUE, "That's right."),
-               fail = "No. Try aain.")
-}
-```
-
-```{r echo = FALSE}
 print_function_contents(hello_fun_strict)
 ```
 
@@ -137,10 +132,6 @@ Of course, a submission of `2 + 2` will work. See what happens when you try to f
 
 ```{r two-plus-two-code-check}
 1 # To trigger pre-check, this chunk must have something in it.
-```
-
-```{r}
-
 ```
 
 ```{r two-plus-two-check}

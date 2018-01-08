@@ -34,11 +34,10 @@ line_where <- function(tidy_code, ..., message = "") {
       new_checkr_result(action = "fail", message = the_message, code = tidy_code$code)
   }
   else {
-    # return just the RHS if assignment
-    the_code <- list(skip_assign(tidy_code$code[[res$n]]))
+    # note: assignment will be included in the returned code.
     new_checkr_result(action = "pass",
                       message = "",
-                      code = the_code)
+                      code = tidy_code$code[res$n])
     }
 }
 #' Grab the lines after a specified line (which is included)

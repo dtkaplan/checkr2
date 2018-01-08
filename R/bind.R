@@ -25,7 +25,7 @@
 #' with `passif()`, `failif()`, `noteif()`, `test_binding()`, and so on. In addition to the bindings
 #' defined in `keys`, for each line the name of the object assigned to will be bound to the pronoun `Z`.  (`Z` will be `""`
 #' when there's no assignment in the line.)
-#' @param fail a character string message. By default, the function
+#' @param message a character string message. By default, the function
 #' will return an "ok" checkr_result if the patterns don't match. If
 #' fail is not empty, then a "fail" checkr_result will be returned with
 #' the value of fail as the message.
@@ -48,10 +48,10 @@
 #' wrong1 <- for_checkr(quote(2 - 2))
 #' wrong2 <- for_checkr(quote(2*2))
 #' line_binding(ex, 2 + 2, passif(TRUE, "The patterns matched."))
-#' line_binding(ex, 3 + 3, fail = "wasn't 3 + 3")
+#' line_binding(ex, 3 + 3, message = "wasn't 3 + 3")
 #' line_binding(ex, 2 + 2, passif(Z == "z", "Assignment to {{Z}}."))
 #' line_binding(ex, 3 + 3, passif(TRUE, "not a match"))
-#' line_binding(ex, 3 + 3, passif(TRUE, "not a match"), fail = "not a match")
+#' line_binding(ex, 3 + 3, passif(TRUE, "not a match"), message = "not a match")
 #' line_binding(ex, 2 + ..(y), must(y != 2, "{{expression_string}} wasn't right. Second argument should not be {{y}}"))
 #' line_binding(ex, `+`(.(a), .(b)), passif(TRUE, "Found a match."))
 #' line_binding(ex, `+`(.(a), .(b)),
@@ -75,7 +75,7 @@
 
 
 #' @export
-line_binding <- function(tidy_code, keys, ..., fail = "No match found to specified patterns.") {
+line_binding <- function(tidy_code, keys, ..., message = "No match found to specified patterns.") {
   stopifnot(inherits(tidy_code, "checkr_result"))
   if (failed(tidy_code)) return(tidy_code) # short circuit on failed input
 
@@ -139,8 +139,8 @@ line_binding <- function(tidy_code, keys, ..., fail = "No match found to specifi
   # If none of the expressions matched all of the patterns,
   # return now.
   if ( ! all(patterns_matched)) {
-    res <- if (fail == "") new_checkr_result("ok", code = code)
-    else new_checkr_result("fail", fail, code = code)
+    res <- if (message == "") new_checkr_result("ok", code = code)
+    else new_checkr_result("fail", message, code = code)
     return(res)
   }
 
