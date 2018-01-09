@@ -1,10 +1,10 @@
 context("chains")
 
 test_that("Can identify an expression as a chain ", {
-  expect_true(checkr2:::is_chain(quote(3 %>% sqrt)))
-  expect_false(checkr2:::is_chain(quote(7)))
-  expect_false(checkr2:::is_chain(quote(sin(7))))
-  expect_false(checkr2:::is_chain(mtcars))
+  expect_true(checkr2:::is_chain(quo(3 %>% sqrt)))
+  expect_false(checkr2:::is_chain(quo(7)))
+  expect_false(checkr2:::is_chain(quo(sin(7))))
+  expect_false(checkr2:::is_chain(quo(mtcars)))
 })
 
 test_that("Can find a chain in a sequence of lines", {
