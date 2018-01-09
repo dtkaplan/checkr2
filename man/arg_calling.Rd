@@ -22,13 +22,12 @@ Find an argument
 }
 \examples{
 ex <- for_checkr(quote(15 * sin(53 * pi / 180)))
-ex2 <- for_checkr(quote(sin(3)))
-line_calling(ex, qfuns = quote(sin))
-# look everywhere, including the top-level function
-call_to(ex, qfuns = quote(sin))
-call_to(ex2, qfuns = quote(sin))
+ex2 <- for_checkr(quote(yy <- sin(3))) # at the top level
+line_calling(ex, sin)
 # look only in arguments: the top-level function doesn't count
-arg_calling(ex, qfuns = quote(sin))
-arg_calling(ex2, qfuns = quote(sin))
+arg_calling(ex, sin)
+arg_calling(ex2, sin)
+# But line_calling() will find it at the top level.
+line_calling(ex2, sin)
 
 }

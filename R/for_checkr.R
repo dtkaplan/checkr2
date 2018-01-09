@@ -13,9 +13,11 @@
 #'
 #' @examples
 #' code <- for_checkr(quote({x <- 2; y <- x^2; z <- x + y}))
+#' class(code)
+#' passed(code)
 #' line_where(code, Z == "z")
 #' line_where(code, V == 4, Z == "y")
-#' if_matches(line_where(code, F == `+`), `+`(.(one), .), must(one != quote(x), "fated message for {{one}}"))
+
 #' @export
 for_checkr <- function(exprs) {
   if (is.character(exprs)) { # turn text into parsed code

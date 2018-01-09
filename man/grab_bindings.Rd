@@ -4,28 +4,35 @@
 \alias{grab_bindings}
 \title{Grab any bindings from a pattern match}
 \usage{
-grab_bindings(ex, keys, req_all_patterns = TRUE, fail_if_no_match = TRUE)
+grab_bindings(ex, ..., all_for_one = TRUE, one_for_all = FALSE)
 }
 \arguments{
 \item{ex}{the expression to be searched for the patterns}
 
-\item{keys}{the set of patterns}
+\item{...}{the set of patterns. Each pattern must be be enclosed in \code{quote()}. See details.}
 
-\item{req_all_patterns}{Logical. If \code{TRUE}, then all patterns must match some
+\item{all_for_one}{Logical. If \code{TRUE}, then there must be an expression
+that matches all patterns.}
+
+\item{one_for_all}{Logical. If \code{TRUE}, then all patterns must match at least one
 expression in ex.}
-
-\item{fail_if_no_match}{Logical. If \code{TRUE}, then all expressions must match a pattern. (IS THIS RIGHT?)}
 }
 \description{
-Grab any bindings from a pattern match
+UNLIKE the \code{check_} functions which return \code{checkr_result} objects,
+\code{grab_bindings} returns a list with the values matched to the keys.
+}
+\details{
+The patterns in \code{...} will often have internal commas. To distinquish these
+from separate arguments to \code{grab_bindings()}, each pattern must be quoted, e.g. \code{quote(plot(.(one), .(two)))}.
+Note that the patterns should include assignment if there is to be any.
 }
 \examples{
-ex <- quote(plot(mpg ~ wt, data = subset(mtcars, hp < 150)))
-key <- quote(.(fn)(.(formula), data = .(the_data)))
-grab_bindings(ex, !!key, fail_if_no_match = FALSE)
-ex2 <- quote({x <- 1; y <- x^2})
-keys <- quote({`<-`(x, ..(first)); `<-`(.(var), .(fn)(x, .(exponent)))})
-grab_bindings(ex2, !!keys, fail_if_no_match = FALSE)
-grab_bindings(ex2, !!keys, fail_if_no_match = FALSE, req_all_patterns = FALSE)
-
+ex <- for_checkr(quote(plot(mpg ~ wt, data = subset(mtcars, hp < 150))))
+grab_bindings(ex, quote(.(fn)(.(formula), data = .(the_data))))
+ex2 <- for_checkr(quote({x <- 1; y <- x^2}))
+grab_bindings(ex2, quote(`<-`(x, ..(first))), quote(`<-`(.(var), .(fn)(x, .(exponent)))), all_for_one = FALSE)
+grab_bindings(ex2, quote(`<-`(x, ..(first))), quote(`<-`(.(var), .(fn)(x, .(exponent)))))
+grab_binding_anywhere(for_checkr(quote({4 - 7;sin(3 + 2)})), quote(`+`(.(a), .(b))))
+grab_binding_anywhere(for_checkr(quote({4 - 7;sin(3 + 2)})), quote(.(fn)(3 + 2)))
+grab_binding_anywhere(for_checkr(quote({4 - 7;sin(3 + 2)})), quote(`-`(.(a), .(b))))
 }

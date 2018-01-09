@@ -10,51 +10,11 @@ library(checkr2)
 knitr::opts_chunk$set(echo = FALSE)
 tutorial_options(exercise.checker = checkr2::check_for_learnr)
 # tutorial_options(exercise.checker = function(...) cat("Bogus checker\n"))
-
-
-bunch_1_a <- function(USER_CODE) {
-  code <- for_checkr(USER_CODE)
-  res <- line_where(code, Z != "", 
-                    message = "Remember to store the result under the name `Id`.")
-  res <- line_where(res, Z == "Id", message = "Use `Id` for the assignment, not {{Z}}.")
-  
-  res <- line_where(res, F == rep, message = "You're supposed to use `rep()`.")
-  the_each_arg <- named_arg(res, "each", 
-                         message = "Look at the help for `rep()` to see what arguments are available to control the pattern of repetition. (These are documented under `...`)")
-  t1 <- check(the_each_arg,
-              failif(V != 3, 
-                     "Good use of `each=`, but each = {{V}} is not the right value."))
-  if (failed(t1)) return(t1)
-  
-  the_vector <- vector_arg(res, message = "Where do you create the elements to be repeated?")
-  t2 <- check(the_vector, 
-              failif(! identical(V, 1:4), 
-              "The elements to be repeated are 1 through 4, not {{V}}. Where do you construct the set 1:4 to pass to `rep()`?"))
-  
-  
-
-  t2 
-}
 ```
 
 
-```{r eval = FALSE}
-# For testing ...
-ex1 <- quote(c(1,1,1,2,2,2,3,3,3,4,4,4))
-ex1a <- quote(Id <- c(1,1,1,2,2,2,3,3,3,4,4,4))
-ex2 <- "Id <- rep(1:3, each = 3)"
-ex2a <- "Id <- rep(1:3, each = 4)"
-ex2b <- "Id <- rep(3, each = 4)"
-ex3 <- "Id <- rep(1:4, each = 3)"
 
-# bunch_1_a(ex1)
-# bunch_1_a(ex1a)
-# bunch_1_a(ex2)
-# bunch_1_a(ex2a)
-# bunch_1_a(ex3)
 
-```
-```
 
 
 ## Using `rep()`
@@ -81,12 +41,8 @@ rep(1:4, .... = 3)
 ```
 
 ```{r bunch-1-a-check, echo = FALSE}
-bunch_1_a(USER_CODE)
+checkr2:::rep_1245(USER_CODE)
 ```
-
-
-
-
 
 
 b. Create a vector named `Letter` that contains `"a" "b" "c" "a" "b" "c" "a" "b" "c" "a" "b" "c"`
@@ -111,18 +67,7 @@ rep(...., length.out = 12)
 ```
 
 ```{r bunch-1-b-check, echo = FALSE}
-# For testing ...
-#USER_CODE <- "Letter <- rep(c("a","b","c"), each = 4)"
-bind(USER_CODE, ".(fn)(...)",
-           failif(fn != quote(`<-`), "Remember to store the result under the name `Letter`."))
-bind(USER_CODE, {..(res); `<-`(.(nm), .(val))},
-           failif(nm != quote(Letter), "The object should be called `Letter`, not '{{nm}}'."),
-           bind(val, rep(..(a), `..(nm)` = ..(arg2)),
-                      failif(nm != "each", "Look at the help for `rep()` to see what arguments are available to control the pattern of repetition. (These are documented under `...`)"),
-                      failif( ! identical(a, c("a", "b", "c")),  "The elements to be repeated are `\"a\", \"b\", \"c\"`, not {{a}}. Where do you construct that set to hand to `rep()`?")),
-           passif(identical(res, rep(c("a","b","c"), each = 4)), "Right!"),
-           failif(TRUE, "Sorry, but the result isn't right."))
-
+checkr2:::rep_abcd(USER_CODE)
 ```
 
 
@@ -130,10 +75,13 @@ c. You've constructed `Id` in the previous exercise. Copy the statement you used
     1. `x` which will be evenly spaced numbers between 1 and 43. `x` will have the same length as `Id`.
     2. `y` which will be similar to `x`, but will consist of evenly spaced numbers between -20 and 0.
     
-Once you have constructed `x` and `y`, make a data frame called `df` that contains `x`, `y`, `Id` as columns. The variable names should be `x`, `y`, and `Id`.
+    Once you have constructed `x` and `y`, make a data frame called `df` that contains `x`, `y`, `Id` as columns. The variable names should be `x`, `y`, and `Id`.
 
-```{r bunch-1-c, exercise = TRUE, echo = FALSE}
-
+    ```{r bunch-1-c, exercise = TRUE, echo = FALSE}
+Id <- rep(1:4, each=3) 
+x <- seq(1, 43, length = length(Id))
+y <- seq(-20, 0, length = length(Id))
+df <- data.frame(x=x, y = y, Id = Id)
 ```
 
 ```{r bunch-1-c-solution, echo = FALSE}
@@ -144,33 +92,7 @@ df <- data.frame(x = x, y = y, Id = Id)
 ```
 
 ```{r bunch-1-c-check, echo = FALSE}
-# USER_CODE <- quote({Id <- rep(1:4, each = 3);
-#   x <- seq(1,42, along.with = Id);
-#   y <- seq(-20, 0, along.with = Id);
-#   df <- data.frame(x = x, y = y, Id = Id)
-# })
-
-fail_if_no_match(USER_CODE, Id <- ., "You didn't create `Id` as requested.")
-bind(USER_CODE, `<-`(Id, ..(val)),
-           failif( ! identical(val, rep(1:4, each = 3)), 
-                   "You didn't make `Id` correctly. "))
-fail_if_no_match(USER_CODE, x <- ., "You didn't create `x` as requested.")
-bind(USER_CODE, `<-`(x, ..(val)),
-           failif( ! identical(val, seq(1, 43, length = 12)),
-                   "You didn't make `x` correctly."))
-fail_if_no_match(USER_CODE, y <- ., "You didn't create `y` as requested.")
-bind(USER_CODE, `<-`(y, ..(val)),
-           failif( ! identical(val, seq(-20, 0, length = 12)),
-                   "You didn't make `y` correctly."))
-fail_if_no_match(USER_CODE, df <- ., "You didn't create `df` as requested.")
-bind(USER_CODE, `<-`(df, ..(df)),
-           failif( ncol(df) != 3, "The data frame `df` should have three columns, not {{ncol(df)}}."),
-           failif( ! setequal(names(df), c("Id", "x", "y")), "The names of the data frame variables should be `Id`, `x`, `y`. You've got {{paste(paste0('`', names(df), '`'), collapse=', ')}}."))
-bind(USER_CODE, `<-`(df, .(fn)(...)),
-           failif(fn != quote(data.frame), "Use the `data.frame()` function to make the data frame"))
-           
-pass_anyways()
-
-
+#USER_CODE <- "Id <- rep(1:4, each=3); x <- seq(1, 43, length = length(Id)); y <- seq(-20, 0, length = length(Id)); df <- data.frame(x=x, y = y, Id = Id)"
+checkr2:::df_abcd_1234_x_y(USER_CODE)
 ```
 

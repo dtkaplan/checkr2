@@ -44,7 +44,6 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 
 <div class="topics">
 
-<p>```</p>
 <div id="section-using-rep" class="section level2">
 <h2>Using <code>rep()</code></h2>
 <ol style="list-style-type: lower-alpha">
@@ -66,7 +65,7 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <pre class="text"><code>1 # There must be something in this chunk.</code></pre>
 </div>
 <div class="tutorial-exercise-support" data-label="bunch-1-a-check" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
-<pre class="text"><code>bunch_1_a(USER_CODE)</code></pre>
+<pre class="text"><code>checkr2:::rep_1245(USER_CODE)</code></pre>
 </div>
 <ol start="2" style="list-style-type: lower-alpha">
 <li>Create a vector named <code>Letter</code> that contains <code>&quot;a&quot; &quot;b&quot; &quot;c&quot; &quot;a&quot; &quot;b&quot; &quot;c&quot; &quot;a&quot; &quot;b&quot; &quot;c&quot; &quot;a&quot; &quot;b&quot; &quot;c&quot;</code>
@@ -87,29 +86,23 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <pre class="text"><code>1 # chunk can&#39;t be empty</code></pre>
 </div>
 <div class="tutorial-exercise-support" data-label="bunch-1-b-check" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
-<pre class="text"><code># For testing ...
-#USER_CODE &lt;- &quot;Letter &lt;- rep(c(&quot;a&quot;,&quot;b&quot;,&quot;c&quot;), each = 4)&quot;
-bind(USER_CODE, &quot;.(fn)(...)&quot;,
-           failif(fn != quote(`&lt;-`), &quot;Remember to store the result under the name `Letter`.&quot;))
-bind(USER_CODE, {..(res); `&lt;-`(.(nm), .(val))},
-           failif(nm != quote(Letter), &quot;The object should be called `Letter`, not &#39;{{nm}}&#39;.&quot;),
-           bind(val, rep(..(a), `..(nm)` = ..(arg2)),
-                      failif(nm != &quot;each&quot;, &quot;Look at the help for `rep()` to see what arguments are available to control the pattern of repetition. (These are documented under `...`)&quot;),
-                      failif( ! identical(a, c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;)),  &quot;The elements to be repeated are `\&quot;a\&quot;, \&quot;b\&quot;, \&quot;c\&quot;`, not {{a}}. Where do you construct that set to hand to `rep()`?&quot;)),
-           passif(identical(res, rep(c(&quot;a&quot;,&quot;b&quot;,&quot;c&quot;), each = 4)), &quot;Right!&quot;),
-           failif(TRUE, &quot;Sorry, but the result isn&#39;t right.&quot;))</code></pre>
+<pre class="text"><code>checkr2:::rep_abcd(USER_CODE)</code></pre>
 </div>
 <ol start="3" style="list-style-type: lower-alpha">
 <li>You’ve constructed <code>Id</code> in the previous exercise. Copy the statement you used to do that into this code block. Then create two more vectors:
 <ol style="list-style-type: decimal">
 <li><code>x</code> which will be evenly spaced numbers between 1 and 43. <code>x</code> will have the same length as <code>Id</code>.</li>
 <li><code>y</code> which will be similar to <code>x</code>, but will consist of evenly spaced numbers between -20 and 0.</li>
-</ol></li>
 </ol>
 <p>Once you have constructed <code>x</code> and <code>y</code>, make a data frame called <code>df</code> that contains <code>x</code>, <code>y</code>, <code>Id</code> as columns. The variable names should be <code>x</code>, <code>y</code>, and <code>Id</code>.</p>
 <div class="tutorial-exercise" data-label="bunch-1-c" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
+<pre class="text"><code>Id &lt;- rep(1:4, each=3) 
+x &lt;- seq(1, 43, length = length(Id))
+y &lt;- seq(-20, 0, length = length(Id))
+df &lt;- data.frame(x=x, y = y, Id = Id)</code></pre>
 <script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.checker":["function (label = NULL, user_code = NULL, solution_code = NULL, ","    check_code = NULL, envir_result = NULL, evaluate_result = NULL, ","    ..., debug = FALSE) ","{","    if (debug) {","        save_file_name <- sprintf(\"~/Downloads/CheckR/chunk-%s.rds\", ","            label)","        saveRDS(list(label = label, user_code = user_code, solution_code = solution_code, ","            check_code = check_code, envir = envir_result, evaluate_result = evaluate_result), ","            file = save_file_name)","    }","    if (is.null(envir_result)) {","        res <- pre_check(user_code, solution_code)","        if (!res$correct) {","            return(list(correct = FALSE, type = \"error\", location = \"prepend\", ","                message = res$message))","        }","        else {","            return(TRUE)","        }","    }","    if (!is.null(envir_result)) {","        res <- parse_check(user_code)","        if (!res$correct) {","            return(list(correct = FALSE, type = \"error\", location = \"prepend\", ","                message = res$message))","        }","    }","    parsed_check_code <- parse(text = check_code)","    res <- eval(parsed_check_code, envir = list(USER_CODE = user_code))","    if (res$action == \"ok\" && res$message == \"\") ","        res$message = \"Good\"","    feedback_type <- switch(res$action, pass = \"success\", fail = \"error\", ","        ok = \"warning\")","    final <- list(correct = (res$action == \"pass\"), message = res$message, ","        type = feedback_type, location = \"prepend\")","    final","}"]}</script>
-</div>
+</div></li>
+</ol>
 <div class="tutorial-exercise-support" data-label="bunch-1-c-solution" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
 <pre class="text"><code>Id &lt;- rep(1:4, each = 3)
 x &lt;- seq(1, 43, along.with=Id)
@@ -117,32 +110,8 @@ y &lt;- seq(-20,0, along.with=Id)
 df &lt;- data.frame(x = x, y = y, Id = Id)</code></pre>
 </div>
 <div class="tutorial-exercise-support" data-label="bunch-1-c-check" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
-<pre class="text"><code># USER_CODE &lt;- quote({Id &lt;- rep(1:4, each = 3);
-#   x &lt;- seq(1,42, along.with = Id);
-#   y &lt;- seq(-20, 0, along.with = Id);
-#   df &lt;- data.frame(x = x, y = y, Id = Id)
-# })
-
-fail_if_no_match(USER_CODE, Id &lt;- ., &quot;You didn&#39;t create `Id` as requested.&quot;)
-bind(USER_CODE, `&lt;-`(Id, ..(val)),
-           failif( ! identical(val, rep(1:4, each = 3)), 
-                   &quot;You didn&#39;t make `Id` correctly. &quot;))
-fail_if_no_match(USER_CODE, x &lt;- ., &quot;You didn&#39;t create `x` as requested.&quot;)
-bind(USER_CODE, `&lt;-`(x, ..(val)),
-           failif( ! identical(val, seq(1, 43, length = 12)),
-                   &quot;You didn&#39;t make `x` correctly.&quot;))
-fail_if_no_match(USER_CODE, y &lt;- ., &quot;You didn&#39;t create `y` as requested.&quot;)
-bind(USER_CODE, `&lt;-`(y, ..(val)),
-           failif( ! identical(val, seq(-20, 0, length = 12)),
-                   &quot;You didn&#39;t make `y` correctly.&quot;))
-fail_if_no_match(USER_CODE, df &lt;- ., &quot;You didn&#39;t create `df` as requested.&quot;)
-bind(USER_CODE, `&lt;-`(df, ..(df)),
-           failif( ncol(df) != 3, &quot;The data frame `df` should have three columns, not {{ncol(df)}}.&quot;),
-           failif( ! setequal(names(df), c(&quot;Id&quot;, &quot;x&quot;, &quot;y&quot;)), &quot;The names of the data frame variables should be `Id`, `x`, `y`. You&#39;ve got {{paste(paste0(&#39;`&#39;, names(df), &#39;`&#39;), collapse=&#39;, &#39;)}}.&quot;))
-bind(USER_CODE, `&lt;-`(df, .(fn)(...)),
-           failif(fn != quote(data.frame), &quot;Use the `data.frame()` function to make the data frame&quot;))
-           
-pass_anyways()</code></pre>
+<pre class="text"><code>#USER_CODE &lt;- &quot;Id &lt;- rep(1:4, each=3); x &lt;- seq(1, 43, length = length(Id)); y &lt;- seq(-20, 0, length = length(Id)); df &lt;- data.frame(x=x, y = y, Id = Id)&quot;
+checkr2:::df_abcd_1234_x_y(USER_CODE)</code></pre>
 </div>
 
 <script type="application/shiny-prerendered" data-context="server-start">
@@ -151,31 +120,6 @@ library(checkr2)
 knitr::opts_chunk$set(echo = FALSE)
 tutorial_options(exercise.checker = checkr2::check_for_learnr)
 # tutorial_options(exercise.checker = function(...) cat("Bogus checker\n"))
-
-
-bunch_1_a <- function(USER_CODE) {
-  code <- for_checkr(USER_CODE)
-  res <- line_where(code, Z != "", 
-                    message = "Remember to store the result under the name `Id`.")
-  res <- line_where(res, Z == "Id", message = "Use `Id` for the assignment, not {{Z}}.")
-  
-  res <- line_where(res, F == rep, message = "You're supposed to use `rep()`.")
-  the_each_arg <- named_arg(res, "each", 
-                         message = "Look at the help for `rep()` to see what arguments are available to control the pattern of repetition. (These are documented under `...`)")
-  t1 <- check(the_each_arg,
-              failif(V != 3, 
-                     "Good use of `each=`, but each = {{V}} is not the right value."))
-  if (failed(t1)) return(t1)
-  
-  the_vector <- vector_arg(res, message = "Where do you create the elements to be repeated?")
-  t2 <- check(the_vector, 
-              failif(! identical(V, 1:4), 
-              "The elements to be repeated are 1 through 4, not {{V}}. Where do you construct the set 1:4 to pass to `rep()`?"))
-  
-  
-
-  t2 
-}
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">

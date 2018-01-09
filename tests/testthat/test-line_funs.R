@@ -22,6 +22,17 @@ test_that("line_where() identifies an expression", {
   expect_equal(res1$code[[1]], quo(y <- x^3))
 })
 
+test_that("line_calling() works", {
+  code <- for_checkr("x <- 1; y <- x^2; z <- (y^2 + 7) / 2")
+  r1 <- line_calling(code, `^`, message="Didn't find any line using exponentiation.")
+  expect_equal(r1$code[[1]], quo(y <- x^2))
+  r2 <- line_calling(code, `^`, n = 2L, message = "Didn't find a second line using exponentiation.")
+  expect_equal(r2$code[[1]], quo(z <- (y^2 + 7) / 2))
+  r3 <- line_calling(code, `-`, message = "No subtraction line called.")
+  expect_true(failed(r3))
+  expect_equal(r3$message, "No subtraction line called.")
+})
+
 test_that("line_where() and line_binding() return code in the form of a list of quosures.", {
   res1 <- line_where(CODE, EX == quo(x^3))
   expect_true(is.list(res1$code))
@@ -77,7 +88,7 @@ test_that("line_binding() returns a checkr_result with code", {
 
 test_that("line_calling() works", {
   res1 <- line_calling(CODE, `^`)
-  expect_equal(res1$code[[1]], quo(x^3))
+  expect_equal(res1$code[[1]], quo(y <- x^3))
   res2 <- line_calling(CODE, I)
   expect_equal(res2$code[[1]], quo(z <- y + I(x)))
   res3 <- line_calling(CODE, sin, I, tan)

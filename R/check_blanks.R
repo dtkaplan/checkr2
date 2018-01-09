@@ -7,15 +7,18 @@
 #' with `passif()`, `failif()`, and so on.
 #'
 #' @examples
-#' submission <- quote(res <- sqrt(a^2 + b^2))
-#' submission2 <- quote(res <- sin(a^2 + b^2))
+#' submission <- for_checkr(quote(res <- sqrt(a^2 + b^2)))
+#' submission2 <- for_checkr(quote(res <- sin(a^2 + b^2)))
+#' # a template with a blank ..fn..
 #' as_posted <- quote({res <- ..fn..(a^2 + b^2)})
 #' check_blanks(submission2, !!as_posted,
 #'    failif(fn == quote(sin) , "Wrong function"),
 #'    passif(fn == quote(sqrt), "Right: the square root!"))
-#' as_posted <- quote({res <- ..fn..(`+`(`^`(a, ..exp1..), `^`(b, ..exp2..)))})
+#' # Multiple blanks
+#' as_posted <- for_checkr(quote({res <- ..fn..(`+`(`^`(a, ..exp1..), `^`(b, ..exp2..)))}))
 #' @export
 check_blanks <- function(ex, pat, ...) {
+  stopifnot(inherits(ex, "checkr_result"))
   cmd <- rlang::enquo(pat)
   tests <- rlang::quos(...)
   pat_str <- deparse(rlang::get_expr(cmd))

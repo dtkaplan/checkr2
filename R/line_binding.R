@@ -1,67 +1,65 @@
-#' Looks for a match to patterns.
+#' Locates a line matching a redpen pattern and conducts tests on the resulting bindings.
 #'
-#' Looks for a match of all the patterns to one of the expressions. If the match is found, the
-#' tests (see `...`) are evaluated in order. A pass or a fail causes an immediate
-#' termination of the testing and returns that result. If no pass or fail occurs, a neutral result
+#' Looks for a line matching *all* of the redpen patterns. If the match is found, the
+#' tests (see `...`) are evaluated in order using the bindings established in the redpen match.
+#' A pass or a fail causes an immediate
+#' termination of the testing and returns that result.
+#' If no pass or fail occurs, a neutral result ("ok")
 #' is created so that evaluation can proceed to subsequent statements.
 #'
-#' If the patterns match some statement in the expressions, then the tests are evaluated
-#' using the bindings established in the pattern match.
+#' If any of the redpen patterns fails to match, a checkr_result "fail" is returned with
+#' the message specified in the `message` argument, and with code being the same as the input code.
 #'
-#' @aliases line_binding line_value test_binding
+#' In additon to the passif/failif/noteif tests, you can use `line_` functions as a test.
+#' Of course, the the functions
+#' used in the tests will have an input that is only one line, so the name "line_" may be
+#' misleading. `check_binding()` is just an alias for line_binding. Not really needed, but
+#' it seems nicer to use `check_binding()`  within a "line_binding"
 #'
+#' @aliases line_binding check_binding
 #'
-#' @return A checkr_test object with an action ("pass", "fail", or "ok") and a
-#' message to be displayed to the user.
+#' @return A checkr_test object with an action ("pass", "fail", or "ok")
 #'
-#' @param ex an expression or {}-bracketed set of expressions. This may
-#' be produced by `quote()`, or `parse(text = ...)` or some similar language
-#' mechanism.
+#' @param ex a checkr_result object produced by some previous checkr function, e.g. `for_checkr()`
 #' @param keys an R statement used for pattern matching and binding, based
 #' on the redpen package. This can also be a {}-bracketed set of patterns. If the expression
 #' involves assignment, the keys will be matched only to the RHS of assignment, not the whole
-#' expression.
+#' expression. See details for what becomes of assignment.
 #' @param ... tests to apply to expressions in `ex`. These are typically made
-#' with `passif()`, `failif()`, `noteif()`, `test_binding()`, and so on. In addition to the bindings
+#' with `passif()`, `failif()`, `noteif()`, `check_binding()`, and so on. In addition to the bindings
 #' defined in `keys`, for each line the name of the object assigned to will be bound to the pronoun `Z`.  (`Z` will be `""`
 #' when there's no assignment in the line.)
-#' @param message a character string message. By default, the function
-#' will return an "ok" checkr_result if the patterns don't match. If
-#' fail is not empty, then a "fail" checkr_result will be returned with
-#' the value of fail as the message.
+#' @param message a character string message. If the patterns don't match, the message to
+#' give with the failed checkr_result.
 #'
 #' @details Remember that the `keys` should be designed around statements *not* involving assignment.
 #' If you want to check assignment, use the `Z` pronoun.
 
-#' @return a test-result list containing a message string and a directive
-#' about whether the expressions in `ex` passed the test.
+#' @return a checkr_result object.
 #'
-#' @details The pattern `pat` is applied to each of the expressions in `ex`.
+#' @details The pattern or patterns in `keys` are applied to each of the expressions in `ex`.
 #' The tests are only considered for the first expression in `ex` that matches
 #' the pattern.  `passif()` and `failif()` tests, when satisfied, lead to immediate
-#' return: no other tests are performed. `noteif()` just adds a note, without
-#' terminating the testing.
+#' return: no later tests are performed. `noteif()` just adds a note, without
+#' terminating the testing. The redpen patterns are compared just to the RHS of any assignment.
+#' The Z pronoun will store the name of any assignment (and will be `""` if there's no assignment.)
 #'
 #'
 #' @examples
 #' ex <- for_checkr(quote(z <- 2+2))
-#' wrong1 <- for_checkr(quote(2 - 2))
-#' wrong2 <- for_checkr(quote(2*2))
-#' line_binding(ex, 2 + 2, passif(TRUE, "The patterns matched."))
-#' line_binding(ex, 3 + 3, message = "wasn't 3 + 3")
+#' line_binding(ex, 2 + 2, passif(TRUE, "The pattern matched."), message = "I was looking for 2+2.")
+#' line_binding(ex, 3 + 3, message = "I was looking for 3 + 3")
+#' # The Z pronoun for assignment is added by default
 #' line_binding(ex, 2 + 2, passif(Z == "z", "Assignment to {{Z}}."))
-#' line_binding(ex, 3 + 3, passif(TRUE, "not a match"))
-#' line_binding(ex, 3 + 3, passif(TRUE, "not a match"), message = "not a match")
-#' line_binding(ex, 2 + ..(y), must(y != 2, "{{expression_string}} wasn't right. Second argument should not be {{y}}"))
+#' line_binding(ex, 2 + ..(y), failif(y != 2, "{{expression_string}} wasn't right. Second argument should be 2,  not {{y}}"))
 #' line_binding(ex, `+`(.(a), .(b)), passif(TRUE, "Found a match."))
 #' line_binding(ex, `+`(.(a), .(b)),
-#'   passif(a==b, message = "Yes, they are equal!"))
-#' line_binding(ex, `+`(.(a), .(b)),
-#'   passif(a==b,
-#'      message = "Yes, they are equal! In this case, they are both {{a}}."))
+#'   passif(a==b, message = "Yes, the arguments to + are equal. They are both {{a}}."))
+#' wrong1 <- for_checkr(quote(2 - 2))
+#' wrong2 <- for_checkr(quote(2*2))
 #' line_binding(wrong1, {.(expr); .(f)(.(a), .(b))},
 #'   passif(f == `+`, "Right! Addition means {{f}}."),
-#'   failif(f != `+`, "In {{expr}}, you used {{f}} instead of +"))
+#'   failif(f != `+`, "In {{expr}}, you used {{f}} instead of +."))
 #' line_binding(wrong2, {.(fn)(.(a), .(b)); ..(val)},
 #'   noteif(val == 4, "Right overall answer: {{val}}."),
 #'   failif(fn != `+`, "You need to use the `+` function, not {{fn}}."),
@@ -71,7 +69,7 @@
 #' line_binding(code2,
 #'   # note, single . with .(fn)
 #'   {..(val); .(fn)(.(formula), data = mtcars);},
-#'   passif(fn == quote(plot), "You made the plot!"))
+#'   passif(fn == plot, "You made the plot!"))
 
 
 #' @export
@@ -151,60 +149,9 @@ line_binding <- function(tidy_code, keys, ..., message = "No match found to spec
   res
 }
 
-# just an alias for line_binding. Not really needed, but
-# it seems nicer to use "test_binding" within a "line_binding"
+
 #' @export
 test_binding <- line_binding
 
-# utility for copying out the bindings defined by redpen pattern
-copy_env <- function(E) {
-  res <- list()
-  nms <- names(E)
-  for (nm in nms)
-    res[[nm]] <- E[[nm]]
-
-  res
-}
-
-
-# utility for turning the output of parse into a bracketed set of
-# expressions
-as_bracketed_expressions <- function(ex) {
-  if (inherits(ex, "character")) ex <- parse(text = ex)
-  if (inherits(ex, "expression")) {
-    # ex came from the parser, not quote.
-    # turn it into a bracketed set of expressions
-    Res <- quote({})
-    for (k in 1:length(ex))
-      Res[[k+1]] <- ex[[k]]
-  } else if ( ! inherits(ex, "{")) { # it's a single expression
-      # put into the framework of a bracketed set of expressions
-      Res <- quote({})
-      Res[[2]] <- ex
-  } else {
-    Res <- ex
-  }
-
-  Res
-
-}
-
-# Utility for simplifying expressions that are gratuitously wrapped in
-# parentheses and stripping off assignment.
-# NOTE: Any expression like (2+2+2) doesn't need the parens. Expressions
-# like (2 + 2)*4 need the parens, but the root of the parse tree will
-# be * rather than (. So get rid of extraneous parens.
-simplify_ex <- function(ex) {
-  stopifnot(inherits(ex, "quosure"))
-  ex <- skip_assign(ex)
-  ex <- rlang::new_quosure(simplify_ex_helper(rlang::quo_expr(ex)),
-                    env = environment(ex))
-
-  ex
-}
-simplify_ex_helper <- function(raw_ex) { # recursive to remove nested parens.
-  if (inherits(raw_ex, "(")) simplify_ex_helper(raw_ex[[2]])
-  else raw_ex
-}
 
 

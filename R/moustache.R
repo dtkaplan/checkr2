@@ -27,14 +27,18 @@ moustache <- function(string, bindings = rlang::env_parent()) {
 
 to_sensible_character <- function(v) {
   if (is.vector(v)) {
+    v <- if(is.numeric(v)) signif(v, 3) else v
     if (length(v) > 5) {
-      paste(paste(as.character(head(v,2)), collapse = ", "),
+      S <- paste(paste(as.character(head(v,2)), collapse = ", "),
             "...",
             paste(as.character(tail(v,2)),collapse = ", "))
 
     } else {
-      paste(as.character(v), collapse = ",")
+      S <- paste(as.character(v), collapse = ",")
     }
+
+    if (length(v) > 5) paste0("a vector of length ", length(v), ": ", S)
+    else S
   } else if (is.matrix(v)) {
       paste(paste(dim(v), collapse = "by"), "matrix with vals", to_sensible_character(v[]))
   } else if (is.data.frame(v)) {

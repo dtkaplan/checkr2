@@ -2,21 +2,21 @@ context("Grabbing arguments ")
 
 CODE <- for_checkr(quote({x <- 2; y <- x^3; z <- y + I(x)}))
 
-test_that("call_to() grabs the sub-expression associated with calling a function", {
+test_that("arg_calling() grabs the sub-expression associated with calling a function", {
   lineA <- line_calling(CODE, `+`)
-  r1 <- call_to(lineA, I)
+  r1 <- arg_calling(lineA, I)
   expect_equal(r1$code[[1]], quo(I(x)))
-  r2 <- call_to(lineA, `+`)
-  expect_equal(r2$code[[1]], quo(y + I(x)))
-  r3 <- call_to(lineA, sin, cos, `+`)
-  expect_equal(r3$code[[1]], quo(y + I(x)))
-  r4 <- call_to(lineA, sin, cos)
+  r2 <- arg_calling(lineA, `+`)
+  expect_equal(r2$code[[1]], quo(z <- y + I(x)))
+  r3 <- arg_calling(lineA, sin, cos, `+`)
+  expect_equal(r3$code[[1]], quo(z <- y + I(x)))
+  r4 <- arg_calling(lineA, sin, cos)
   expect_true(failed(r4))
 })
 
-test_that("call_to() can handle multiple lines", {
-  r5 <- call_to(CODE, sin, I, cos)
-  expect_equal(r5$code[[1]], quo(I(x)))
+test_that("line_calling() can handle multiple lines", {
+  r5 <- line_calling(CODE, sin, I, cos)
+  expect_equal(r5$code[[1]], quo(z <- y + I(x)))
 })
 
 CODE2 <- for_checkr(quote({data(mtcars, package = "datasets"); lm(mpg ~ hp, data = mtcars)}))
@@ -29,7 +29,7 @@ test_that("checks for different kinds of arguments work", {
   expect_equal(res2$code[[1]], quo(mtcars))
   res3 <- named_arg(lineA, "data")
   expect_true(ok(res3))
-  res4 <- arg_number(call_to(lineA, lm), 2)
+  res4 <- arg_number(line_calling(lineA, lm), 2)
   expect_equal(res4$code[[1]], quo(mtcars))
 
   lineB <- line_calling(CODE2, data)

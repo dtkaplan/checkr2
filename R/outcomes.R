@@ -26,15 +26,15 @@
 #' my_line <- line_where(code, F == `+`)
 #' if_matches(my_line, `+`(..(x), ..(y)), must(y == 4, "use 5 for the second argument to +"))
 
-#' @export
-must <- function(test, message = paste("{{test_string}} failed.")) {
-  test <- rlang::enquo(test)
-  function(task, res) {
-    if (task == "test") test
-    else if (task == "message") ifelse(res, "", message)
-    else if (task == "action") ifelse(res, "ok", "fail")
-  }
-}
+#' #' @export
+#' must <- function(test, message = paste("{{test_string}} failed.")) {
+#'   test <- rlang::enquo(test)
+#'   function(task, res) {
+#'     if (task == "test") test
+#'     else if (task == "message") ifelse(res, "", message)
+#'     else if (task == "action") ifelse(res, "ok", "fail")
+#'   }
+#' }
 
 
 
