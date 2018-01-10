@@ -8,12 +8,13 @@
 #'
 #' @examples
 #' # normally these results are made by the checking functions
-#' pa <- checkr2:::new_checkr_result("pass", message = "Good!")
-#' pb <- checkr2:::new_checkr_result("pass", message = "Great!")
-#' fa <- checkr2:::new_checkr_result("fail", message = "too bad")
-#' fb <- checkr2:::new_checkr_result("fail", message = "sorry")
-#' oka <- checkr2:::new_checkr_result("ok", message = "note a")
-#' okb <- checkr2:::new_checkr_result("ok", message = "note b")
+#' code <- for_checkr(quote(1))
+#' pa <- check(code, passif(V==1, "Good!"))
+#' pb <- check(code, passif(V==1, "Great!"))
+#' fa <- check(code, failif(V==1, "too bad"))
+#' fb <- check(code, failif(V==1, "sorry"))
+#' oka <- check(code, noteif(V==1, "note a"))
+#' okb <- check(code, noteif(V==1, "note b"))
 #' pa %or% pb
 #' pa %and% pb
 #' fa %or% fb
@@ -26,8 +27,8 @@
 #' pa %and% fa
 #' pa %or% oka
 #' pa %and% oka
-#' not(pa)
-#' not(fa)
+#' checkr2::not(pa)
+#' checkr2::not(fa)
 #'
 #' @rdname logicals
 #' @export
@@ -93,12 +94,12 @@
 
 #' @rdname logicals
 #' @export
-not <- function(e1) {
-  stopifnot(inherits(e1, "checkr_result"))
-  if (e1$action %in% c("pass", "ok")) e1$action = "fail"
-  else e1$action = "pass"
+not <- function(res1) {
+  stopifnot(inherits(res1, "checkr_result"))
+  if (res1$action %in% c("pass", "ok")) res1$action = "fail"
+  else res1$action = "pass"
 
-  e1
+  res1
 }
 
 

@@ -31,6 +31,7 @@
 #' when there's no assignment in the line.)
 #' @param message a character string message. If the patterns don't match, the message to
 #' give with the failed checkr_result.
+#' @param qkeys (for internal use only) a quoted expression containing the keys.
 #'
 #' @details Remember that the `keys` should be designed around statements *not* involving assignment.
 #' If you want to check assignment, use the `Z` pronoun.
@@ -51,7 +52,9 @@
 #' line_binding(ex, 3 + 3, message = "I was looking for 3 + 3")
 #' # The Z pronoun for assignment is added by default
 #' line_binding(ex, 2 + 2, passif(Z == "z", "Assignment to {{Z}}."))
-#' line_binding(ex, 2 + ..(y), failif(y != 2, "{{expression_string}} wasn't right. Second argument should be 2,  not {{y}}"))
+#' line_binding(ex, 2 + ..(y),
+#'     failif(y != 2,
+#'          "{{expression_string}} wasn't right. Second argument should be 2,  not {{y}}"))
 #' line_binding(ex, `+`(.(a), .(b)), passif(TRUE, "Found a match."))
 #' line_binding(ex, `+`(.(a), .(b)),
 #'   passif(a==b, message = "Yes, the arguments to + are equal. They are both {{a}}."))
@@ -73,12 +76,13 @@
 
 
 #' @export
-line_binding <- function(tidy_code, keys, ..., message = "No match found to specified patterns.") {
-  stopifnot(inherits(tidy_code, "checkr_result"))
-  if (failed(tidy_code)) return(tidy_code) # short circuit on failed input
+line_binding <- function(ex, keys, ..., message = "No match found to specified patterns.", qkeys = NULL) {
+  stopifnot(inherits(ex, "checkr_result"))
+  if (failed(ex)) return(ex) # short circuit on failed input
 
-  code <- tidy_code$code
-  keys <- rlang::enexpr(keys)
+  code <- ex$code
+  keys <- if (is.null(qkeys)) rlang::enexpr(keys)
+          else qkeys
   # make sure the patterns, even if from parse(),
   # are put into the form of a set of bracketed expressions
   keys <- as_bracketed_expressions(keys)

@@ -1,6 +1,9 @@
 context("test formulas")
 
-CODE <- for_checkr(quote({ data(mtcars, package = "datasets"); mod <- lm(mpg + carb ~ hp*cyl, data = mtcars)}))
+CODE <- for_checkr(
+  quote({ data(mtcars, package = "datasets")
+          mod <- lm(mpg + carb ~ hp*cyl, data = mtcars)
+        }))
 
 test_that("testing for equality works", {
   the_formula <- mpg + carb ~ hp * cyl

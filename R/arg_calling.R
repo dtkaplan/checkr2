@@ -6,7 +6,6 @@
 #' @param ... unquoted function names
 #' @param n Look for the nth passing argument
 #' @param message character string message on failure
-#' @param just_the_fun Flag for internal use.
 #'
 #' @examples
 #' ex <- for_checkr(quote(15 * sin(53 * pi / 180)))

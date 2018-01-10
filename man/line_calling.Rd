@@ -15,6 +15,8 @@ line_calling(ex, ..., n = 1L, message = "Didn't find matching function.",
 \item{n}{an integer specifying which successful line to return. (Default: 1, the first.)}
 
 \item{message}{a character string to include in the checkr_result if the search is a failure.}
+
+\item{just_the_fun}{If TRUE, don't return the whole line, just the call involving the function}
 }
 \value{
 A checkr_result with a pass, fail, or ok result. If a pass, the code component of the
@@ -35,6 +37,8 @@ circuit, that is, immediately returning the input unchanged.
 \examples{
 code <- for_checkr("x <- 1; y <- x^2; z <- (y^2 + 7) / 2")
 line_calling(code, `^`, message="Didn't find any line using exponentiation.")
+line_calling(code, `^`, message="Didn't find any line using exponentiation.",
+    just_the_fun = TRUE)
 line_calling(code, `^`, n = 2L, message = "Didn't find a second line using exponentiation.")
 
 }

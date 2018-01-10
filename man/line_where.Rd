@@ -3,12 +3,15 @@
 \name{line_where}
 \alias{line_where}
 \alias{lines_after}
+\alias{lines_after}
 \title{Identify an individual line in a sequence of commands}
 \usage{
-line_where(tidy_code, ..., message = "")
+line_where(ex, ..., message = "")
+
+lines_after(ex, ..., message = "")
 }
 \arguments{
-\item{tidy_code}{expressions as made by for_checkr()}
+\item{ex}{expressions as made by for_checkr()}
 
 \item{...}{tests specifying the kind of line we want}
 
@@ -27,9 +30,11 @@ The tests are written in terms of pronouns
 \item V the value produced by the line.
 \item EX the expression itself (but with assignment removed)
 }
+
+Grab the lines after a specified line (which is included)
 }
 \examples{
-tidy_code <- for_checkr(quote({x <- 2; y <- x^3; z <- y + x}))
-line_where(tidy_code, F == "^")
+ex <- for_checkr(quote({x <- 2; y <- x^3; z <- y + x}))
+line_where(ex, F == "^")
 
 }

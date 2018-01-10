@@ -1,7 +1,10 @@
 #' Comparison operators for bindings
 #'
-#' @aliases %same_as% %not_same_as%  not
+#' @aliases %same_as% %not_same_as%
 #'
+#' @importFrom rlang eval_tidy quo_expr child_env quos new_quosure
+#' @importFrom rlang enexpr is_formula expr_text quo enquo is_quosure
+#' @importFrom rlang is_lang lang_args lang_args_names
 #' @param e1 an expression,
 #' @param e2 another expression
 #' @rdname comparisons
@@ -14,7 +17,7 @@
   else if (is.name(e2) && !is.name(e1)) identical(e1, rlang::eval_tidy(e2))
   # handle quos
   else if (rlang::is_quosure(e1) && rlang::is_quosure(e2))
-    identical(quo_expr(e1), quo_expr(e2))
+    identical(rlang::quo_expr(e1), rlang::quo_expr(e2))
   else identical(e1, e2)
 }
 #' @rdname comparisons

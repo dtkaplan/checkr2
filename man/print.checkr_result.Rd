@@ -6,6 +6,11 @@
 \usage{
 \method{print}{checkr_result}(x, ...)
 }
+\arguments{
+\item{x}{a checkr_result object to be printed}
+
+\item{...}{additional args (not used here)}
+}
 \description{
 Print a checkr_result
 }

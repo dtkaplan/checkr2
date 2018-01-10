@@ -7,9 +7,21 @@
 \alias{lhs_equals,}
 \alias{rhs_equals,}
 \alias{rhs_contains}
+\alias{two_sided}
+\alias{lhs_equals}
+\alias{rhs_equals}
+\alias{rhs_contains}
 \title{Testing functions for formulas}
 \usage{
 formula_equals(F, target)
+
+two_sided(F)
+
+lhs_equals(F, ...)
+
+rhs_equals(F, ...)
+
+rhs_contains(F, ...)
 }
 \arguments{
 \item{F}{a formula from a student submission.}
@@ -24,8 +36,11 @@ with an input that is the \emph{value} of a formula, that is, with a V binding r
 than an EX binding.
 }
 \examples{
-CODE <- for_checkr(quote({data(mtcars, package = "datasets"); mod <- lm(mpg ~ hp * wt + cyl, data = mtcars)}))
-fa <- formula_arg(line_calling(CODE, lm), 
+CODE <- for_checkr(quote({
+   data(mtcars, package = "datasets")
+   mod <- lm(mpg ~ hp * wt + cyl, data = mtcars)
+   }))
+fa <- formula_arg(line_calling(CODE, lm),
   failif(! two_sided(V), "Modeling formulas should have two sides."),
   failif(! lhs_equals(V, mpg), "The response variable should be mileage."))
 # or, another style for the same thing ...

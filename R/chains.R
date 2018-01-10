@@ -29,6 +29,7 @@
 #' lineA <- line_chaining(code)
 #' expand_chain(lineA)
 #' expand_all_chains(code)
+#' @rdname chains
 #' @export
 expand_chain <- function(ex) {
   stopifnot(inherits(ex, "checkr_result"))
@@ -49,7 +50,7 @@ expand_chain <- function(ex) {
   return(ex)
 }
 
-#' @rdname expand_chain
+#' @rdname chains
 #' @export
 expand_all_chains <- function(ex) {
   stopifnot(inherits(ex, "checkr_result"))
@@ -64,6 +65,7 @@ expand_all_chains <- function(ex) {
   ex
 }
 
+#' @rdname chains
 #' @export
 # convert a chain into a list of expressions
 chain_elements <- function(ex) {
@@ -92,14 +94,7 @@ elements_to_chain <- function(elements) {
   chain_start
 }
 
-# DOESN"T SEEM TO BE USED
-# evaluate an element of the chain at a given input
-# eval_chain_element <- function(input, ex) {
-#   with_input <- rlang::lang(quote(`%>%`),as.name("input"), ex)
-#   eval(with_input)
-# }
-
-
+#' @rdname chains
 #' @export
 is_chain <- function(ex) {
   ex <- simplify_ex(ex)

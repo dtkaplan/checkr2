@@ -18,7 +18,24 @@ knitr::opts_chunk$set(
 )
 ```
 
-Students are often asked to submit R code. The `checkr2` package provides facilities to give some feedback on their work.
+Students are often asked to submit work. One of the roles of an instructor is to "grade" the students' work. Grades are both a motivator for students to do the work and, ideally, a way to provide feedback to help students learn the material. This ideal is often lost in the rush and tedium of grading itself. The feedback is generally Right-or-Wrong or a point score corresponding to small red check marks and x's placed on the students' papers by the instructor.
+
+The `checkr` package is an attempt to improve the quality of feedback, reduce the tedium of grading, and enable instructors to collect data to help make more effective the feedback students receive.
+
+BLAH BLAH BLAH ... Domain is R commands.
+
+Writing checkr statements is work, but it is a different kind of work than grading papers. 
+
+Feedback should be immediate.
+
+## Why right is wrong.
+
+It's not just the output. It's the way they went about producing the output.
+
+HOW DIFFICULT IT IS TO GRADE ESSAYS
+
+
+One of the most powerful heuristics is Right-or-Wrong. The `checkr2` package provides facilities to give some feedback on their work.
 
 "Summative feedback," in the jargon of education, means telling whether the student was right or wrong; whether the submitted work satisfied the requirements. In computer programming, summative feedback can be based on whether a correct result was computed, whether a function works as required, and so on. `Checkr2` provides simple mechanisms for comparing the quantities computed by the student submission to known values.
 
@@ -215,21 +232,21 @@ if_matches(submission, .(fn)(..(ang)),
 The result, of course, depends on the submission. 
 
 - If the submission is `15 * sin(53 * pi / 180)`, we don't want the submission to fail. For that submission, the result of the above `if_matches()` will be
-```{r echo = FALSE}
+```{r eval = FALSE, echo = FALSE}
 CHECK(quote(15*sin(53 * pi/180)))
 ```
 The submission fails to match the pattern `.(fn)(..(ang))` because that pattern doesn't incorporate the "multiply by 15" in the submission.
 
 - If the submission is `sin(53 * pi / 180)`, we do want the submission to fail. But it's helpful if the failure message points out what the problem is, namely the failure to multiply by 15. For this submission, the result of the check statement will be
-```{r echo = FALSE}
+```{r eval = FALSE, echo = FALSE}
 CHECK(quote(sin(53 * pi/180)))
 ```
 - If the submission is `cos(53 * pi / 180)`, the failure should indicate that cosine is the wrong trig function.
-```{r echo = FALSE}
+```{r eval = FALSE, echo = FALSE}
 CHECK(quote(cos(53 * pi / 180)))
 ```
 - If the submission is `sin(53)`, the failure should be about using degrees as the argument:
-```{r echo = FALSE}
+```{r eval = FALSE, echo = FALSE}
 CHECK(quote(sin(53)))
 ```
 
@@ -308,7 +325,7 @@ ggplot(mtcars, aes(x = hp, y = mpg, color = cyl)) +
 ```
 
 To check the submission, we need to create a pattern that will let us look up the student's values for each of the blanks, then compare these to the correct answer. Good news: We can use the prompt itself as a pattern.
-```{r}
+```{r eval = FALSE}
 check_blanks(submission,
              ggplot(mtcars, aes(x = ..x.., y = ..y.., color = ..c..)) + ..geom..(),
              passif(x == quote(mpg) && y == quote(hp) && 
@@ -346,19 +363,19 @@ check_blanks(submission, C <- ........(A^2 + B^2),
 Let's try some different submissions:
 
 - `C <- sqrt(A^2 + B^2)`
-    ```{r echo = FALSE}
+    ```{r eval = FALSE, echo = FALSE}
 CHECK2("C <- sqrt(A^2 + B^2)")
 ```
 - `C <- log(A^2 + B^2)`
-    ```{r echo = FALSE}
+    ```{r eval = FALSE, echo = FALSE}
 CHECK2("C <- log(A^2 + B^2)")
 ```
 - `C <- ........(A^2 + B^2)` that is, the dots were not replaced
-    ```{r echo = FALSE}
+    ```{r eval = FALSE, echo = FALSE}
 CHECK2("C <- ........(A^2 + B^2)")
 ```
 - `C <- sqrt(A + B)`
-    ```{r echo = FALSE}
+    ```{r eval = FALSE, echo = FALSE}
 CHECK2("C <- sqrt(A + B)")
 ```
 
@@ -399,13 +416,7 @@ If, when trying out your exercises, you find a parsing or run-time error that is
 
 The check function for debugging, but don't use it in tutorial check chunks.
 
-What happens if the pattern doesn't match? Nothing. 
-```{r}
-submission_2 <- "2 - 2"
-if_matches(submission_2, 2 + 2, passif(TRUE, "Right!"))
-```
 
-This provides an opportunity, as described in Section "[Multiple `if_matches()`](#multiple_if_matches)", for additional patterns to be tested in following `if_matches()` statements.
 
 ## Details
 
@@ -460,7 +471,7 @@ WHERE IS THIS GOING?
 - Why you would need to use `quote()` in testing the expression itself. E.g. looking at the *name* of a function.
 - The quoting goes on automatically when a string is passed as the submission.
 
-```{r}
+```{r eval = FALSE}
 submission <- "x <- 3; sin(x)"
 # This will work. `fn` will be a symbol, as will `quote(sin)`.
 if_matches(submission, .(fn)(.(arg)), passif(fn == quote(sin), "Function is {{fn}}, argument is {{arg}}"))
@@ -476,13 +487,13 @@ if_matches(submission, ..(fn)(.(arg)), passif(fn == sin, "Function is {{fn}}, ar
 - Patterns are raw R statements, for instance 
 - Assignment-to has a pattern `` `<-`(x, ...) ``
     - If you want to allow assignment to any of several names, try `` `<-`(.(nm), ...) `` as the pattern and `nm == quote(x) || nm == quote(X)` as the test:
-    ```{r}
+    ```{r eval = FALSE}
     if_matches(quote(x <- 3 + 2), `<-`(.(nm), ..(val)), 
                passif(nm == quote(X) || nm == quote(x), "{{nm}} was assigned the value {{val}}"))
     ```
     - Notice that the pattern has a single dot (`.(nm)`) for the assigned-to part of pattern. Similarly, the value to which it's being compared is in `quote()`, as appropriate for matching a language-name object.
 - Distinguish between `.(a)` and `..(a)`. Suppose you want to check which trigonometric function has been used in a command like `quote(cos(x))`. An appropriate pattern would be `.(fn)(...)`, like this:
-```{r}
+```{r eval = FALSE}
 submission <- quote({x <- pi; cos(x)})
 pattern <- quote(.(fn)(.(var))) # will have to unquote
 if_matches(submission, !!pattern, passif(TRUE, "Found match"))

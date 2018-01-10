@@ -3,7 +3,6 @@
 \name{\%same_as\%}
 \alias{\%same_as\%}
 \alias{\%not_same_as\%}
-\alias{not}
 \alias{\%not_same_as\%}
 \title{Comparison operators for bindings}
 \usage{

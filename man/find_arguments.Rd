@@ -8,9 +8,42 @@
 \alias{list_arg}
 \alias{table_arg}
 \alias{first_arg}
+\alias{data_arg}
+\alias{matrix_arg}
+\alias{vector_arg}
+\alias{character_arg}
+\alias{numeric_arg}
+\alias{list_arg}
+\alias{function_arg}
+\alias{table_arg}
+\alias{arg_number}
+\alias{first_arg}
+\alias{named_arg}
 \title{Functions to extract an the argument from an expression}
 \usage{
 formula_arg(ex, ..., n = 1L, message = "")
+
+data_arg(ex, ..., n = 1L, message = "")
+
+matrix_arg(ex, ..., n = 1L, message = "")
+
+vector_arg(ex, ..., n = 1L, message = "")
+
+character_arg(ex, ..., n = 1L, message = "")
+
+numeric_arg(ex, ..., n = 1L, message = "")
+
+list_arg(ex, ..., n = 1L, message = "")
+
+function_arg(ex, ..., n = 1L, message = "")
+
+table_arg(ex, ..., n = 1L, message = "")
+
+arg_number(ex, n = 1L, ..., message = "")
+
+first_arg(ex, ..., message = "")
+
+named_arg(ex, nm, ..., message = "")
 }
 \arguments{
 \item{ex}{the tidy expression to check}

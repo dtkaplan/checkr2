@@ -16,7 +16,7 @@ res1 \%and\% res2
 
 \method{\%and\%}{checkr_result}(res1, res2)
 
-not(e1)
+not(res1)
 }
 \arguments{
 \item{res1}{the first checkr result}
@@ -29,12 +29,13 @@ whether the test was passed or failed or was sufficient to move on to additional
 }
 \examples{
 # normally these results are made by the checking functions
-pa <- checkr2:::new_checkr_result("pass", message = "Good!")
-pb <- checkr2:::new_checkr_result("pass", message = "Great!")
-fa <- checkr2:::new_checkr_result("fail", message = "too bad")
-fb <- checkr2:::new_checkr_result("fail", message = "sorry")
-oka <- checkr2:::new_checkr_result("ok", message = "note a")
-okb <- checkr2:::new_checkr_result("ok", message = "note b")
+code <- for_checkr(quote(1))
+pa <- check(code, passif(V==1, "Good!"))
+pb <- check(code, passif(V==1, "Great!"))
+fa <- check(code, failif(V==1, "too bad"))
+fb <- check(code, failif(V==1, "sorry"))
+oka <- check(code, noteif(V==1, "note a"))
+okb <- check(code, noteif(V==1, "note b"))
 pa \%or\% pb
 pa \%and\% pb
 fa \%or\% fb
@@ -47,7 +48,7 @@ pa \%or\% fa
 pa \%and\% fa
 pa \%or\% oka
 pa \%and\% oka
-not(pa)
-not(fa)
+checkr2::not(pa)
+checkr2::not(fa)
 
 }

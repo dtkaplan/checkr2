@@ -5,10 +5,12 @@
 #'
 #' @param ex A straight expression, for instance as bound to `EX` in `line_where().`
 #'
+#' @rdname test_ex
 #' @export
 n_args <- function(ex) {
   length(rlang::lang_args_names(ex))
 }
+#' @rdname test_ex
 #' @export
 func_of <- function(ex) {
   rlang::lang_head(ex)

@@ -7,7 +7,7 @@
 for_checkr(exprs)
 }
 \arguments{
-\item{exs}{an expression or expressions in a curly brace}
+\item{exprs}{an expression or set of expressions in a curly brace}
 }
 \value{
 a quosure for each expression in exs, with an associated

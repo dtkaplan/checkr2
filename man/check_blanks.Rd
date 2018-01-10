@@ -19,13 +19,14 @@ with \code{passif()}, \code{failif()}, and so on.}
 Checking fill-in-the-blanks problems
 }
 \examples{
-submission <- for_checkr(quote(res <- sqrt(a^2 + b^2)))
-submission2 <- for_checkr(quote(res <- sin(a^2 + b^2)))
+submission <- for_checkr(quote({a <- 3; b <- 4; res <- sqrt(a^2 + b^2)}))
+submission2 <- for_checkr(quote({a <- 3; b <- 4; res <- sin(a^2 + b^2)}))
 # a template with a blank ..fn..
-as_posted <- quote({res <- ..fn..(a^2 + b^2)})
+as_posted <- quote(res <- ..fn..(a^2 + b^2))
+check_blanks(submission, !!as_posted,
+   insist(fn == quote(sqrt), "{{fn}} is not the right function."))
 check_blanks(submission2, !!as_posted,
-   failif(fn == quote(sin) , "Wrong function"),
-   passif(fn == quote(sqrt), "Right: the square root!"))
+   insist(fn == quote(sqrt), "{{fn}} is not the right function."))
 # Multiple blanks
 as_posted <- for_checkr(quote({res <- ..fn..(`+`(`^`(a, ..exp1..), `^`(b, ..exp2..)))}))
 }

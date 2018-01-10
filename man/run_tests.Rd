@@ -10,6 +10,8 @@ run_tests(test_list, bindings, ex)
 \item{test_list}{a list containing a set of tests}
 
 \item{bindings}{the bindings resulting from a pattern match to a submission}
+
+\item{ex}{the expression being tested (used for failure message)}
 }
 \description{
 Run test statements in the context of the bindings

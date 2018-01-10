@@ -8,7 +8,7 @@
 #'
 #' @aliases line_where lines_after
 #'
-#' @param tidy_code expressions as made by for_checkr()
+#' @param ex expressions as made by for_checkr()
 #' @param ... tests specifying the kind of line we want
 #' @param message A character string to be included as the message in the result. This
 #' can have moustaches written in terms of F, Z, V, or EX
@@ -18,54 +18,56 @@
 #' is an "OK", setting the stage for further testing. If no matching line is found, the result is a fail.
 #'
 #' @examples
-#' tidy_code <- for_checkr(quote({x <- 2; y <- x^3; z <- y + x}))
-#' line_where(tidy_code, F == "^")
+#' ex <- for_checkr(quote({x <- 2; y <- x^3; z <- y + x}))
+#' line_where(ex, F == "^")
 #'
 #' @export
-line_where <- function(tidy_code, ..., message = "") {
-  stopifnot(inherits(tidy_code, "checkr_result"))
-  if (failed(tidy_code)) return(tidy_code) # short circuit on failure
-  res <- matching_line(tidy_code, ..., message = message)
+line_where <- function(ex, ..., message = "") {
+  stopifnot(inherits(ex, "checkr_result"))
+  if (failed(ex)) return(ex) # short circuit on failure
+  res <- matching_line(ex, ..., message = message)
   if (res$n == 0) {
     the_message <-
       if (nchar(message)) res$message
       else "Didn't find a line passing tests."
-      new_checkr_result(action = "fail", message = the_message, code = tidy_code$code)
+      new_checkr_result(action = "fail", message = the_message, code = ex$code)
   }
   else {
     # note: assignment will be included in the returned code.
     new_checkr_result(action = "pass",
                       message = "",
-                      code = tidy_code$code[res$n])
+                      code = ex$code[res$n])
     }
 }
 #' Grab the lines after a specified line (which is included)
+#'
+#' @rdname line_where
 #' @export
-lines_after <- function(tidy_code, ..., message = "") {
-  res <- matching_line(tidy_code, ..., message = "")
+lines_after <- function(ex, ..., message = "") {
+  res <- matching_line(ex, ..., message = "")
   if (res$n == 0) {
-    if (nchar(fail)) new_checkr_result(action = "fail",
+    if (nchar(message)) new_checkr_result(action = "fail",
                                        message = res$message)
     else NULL
   }
-  else tidy_code$code[res$n:length(tidy_code$code)]
+  else ex$code[res$n:length(ex$code)]
 }
 
 
 # internal function to run the tests to find a matching line
-matching_line <- function(tidy_code, ..., message = "", type = NULL, type_text="") {
+matching_line <- function(ex, ..., message = "", type = NULL, type_text="") {
   tests <- rlang::quos(...)
   type_failure <- "" # a flag
-  for (k in 1:length(tidy_code$code)) {
+  for (k in 1:length(ex$code)) {
     # Create the bindings
-    V <- if ("values" %in% names(tidy_code)) {
-      tidy_code$values[[k]]
+    V <- if ("values" %in% names(ex)) {
+      ex$values[[k]]
     } else {
-      rlang::eval_tidy(tidy_code$code[[k]])
+      rlang::eval_tidy(ex$code[[k]])
     }
-    F <- get_function(simplify_ex(tidy_code$code[[k]]))
-    Z <- get_assignment_name(tidy_code$code[[k]])
-    EX <- skip_assign(tidy_code$code[[k]])
+    F <- get_function(simplify_ex(ex$code[[k]]))
+    Z <- get_assignment_name(ex$code[[k]])
+    EX <- skip_assign(ex$code[[k]])
     # other attributes to identify a line?
 
     # run the tests in an environment where V and F

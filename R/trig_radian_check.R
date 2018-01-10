@@ -21,13 +21,11 @@ trig_radian_check <- function(ex, radian_val,
   if (failed(ex)) return(ex) # If ex is a failure, pass it on as a result.
 
   # grab the call to a trigonometric function
-  trig_call <- line_calling(ex, quote(sin), quote(cos), quote(tan),
-                            fail = fail,
-                            pass = pass)
+  trig_call <- line_calling(ex, sin, cos, tan, message = fail)
   if (failed(trig_call)) return(trig_call)
 
   # get the argument to the trig call
-  angle <- arg_number(trig_call, 1, message = message, pass = pass)
+  angle <- arg_number(arg_calling(trig_call, sin, cos, tan), 1, message = message)
   if (failed(angle)) return(angle)
 
   angle_val <- eval_tidy(angle$code[[1]])

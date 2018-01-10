@@ -5,10 +5,12 @@
 \alias{check_binding}
 \title{Locates a line matching a redpen pattern and conducts tests on the resulting bindings.}
 \usage{
-line_binding(tidy_code, keys, ...,
-  message = "No match found to specified patterns.")
+line_binding(ex, keys, ..., message = "No match found to specified patterns.",
+  qkeys = NULL)
 }
 \arguments{
+\item{ex}{a checkr_result object produced by some previous checkr function, e.g. \code{for_checkr()}}
+
 \item{keys}{an R statement used for pattern matching and binding, based
 on the redpen package. This can also be a {}-bracketed set of patterns. If the expression
 involves assignment, the keys will be matched only to the RHS of assignment, not the whole
@@ -22,7 +24,7 @@ when there's no assignment in the line.)}
 \item{message}{a character string message. If the patterns don't match, the message to
 give with the failed checkr_result.}
 
-\item{ex}{a checkr_result object produced by some previous checkr function, e.g. \code{for_checkr()}}
+\item{qkeys}{(for internal use only) a quoted expression containing the keys.}
 }
 \value{
 A checkr_test object with an action ("pass", "fail", or "ok")
@@ -63,7 +65,9 @@ line_binding(ex, 2 + 2, passif(TRUE, "The pattern matched."), message = "I was l
 line_binding(ex, 3 + 3, message = "I was looking for 3 + 3")
 # The Z pronoun for assignment is added by default
 line_binding(ex, 2 + 2, passif(Z == "z", "Assignment to {{Z}}."))
-line_binding(ex, 2 + ..(y), failif(y != 2, "{{expression_string}} wasn't right. Second argument should be 2,  not {{y}}"))
+line_binding(ex, 2 + ..(y),
+    failif(y != 2,
+         "{{expression_string}} wasn't right. Second argument should be 2,  not {{y}}"))
 line_binding(ex, `+`(.(a), .(b)), passif(TRUE, "Found a match."))
 line_binding(ex, `+`(.(a), .(b)),
   passif(a==b, message = "Yes, the arguments to + are equal. They are both {{a}}."))

@@ -6,7 +6,7 @@
 #' should be executed. (That way the lines can be evaluated in a stand-alone
 #' manner.)
 #'
-#' @param exs an expression or expressions in a curly brace
+#' @param exprs an expression or set of expressions in a curly brace
 #'
 #' @return a quosure for each expression in exs, with an associated
 #' environment that reflects the state when that expression was evaluated.

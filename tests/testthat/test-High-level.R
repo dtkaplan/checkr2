@@ -1,5 +1,9 @@
 context("High-level testing to expand coverage")
 
+source(file = system.file("learnr_examples/internal-examples.R",
+                          package = "checkr2"),
+       local = TRUE)
+
 test_that("rep(1:4, each = 3) problem works", {
 
   # For testing ...
@@ -23,5 +27,5 @@ test_that("rep(1:4, each = 3) problem works", {
   expect_true(failed(r4))
   expect_true(grepl("Good use of", r4$message))
   r5 <- rep_1234(ex3)
-  expect_false(failed(r5))
+  expect_true(ok(r5))
 })

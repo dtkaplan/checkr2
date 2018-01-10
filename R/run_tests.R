@@ -2,6 +2,7 @@
 #'
 #' @param test_list a list containing a set of tests
 #' @param bindings the bindings resulting from a pattern match to a submission
+#' @param ex the expression being tested (used for failure message)
 #'
 run_tests <- function(test_list, bindings, ex) {
   # run the tests with these bindings
@@ -34,7 +35,9 @@ run_tests <- function(test_list, bindings, ex) {
       else if (message != "")
         notes <- paste(notes,"\n*", message) # save notes for later pass or fail
 
-    } else if (action %in% c("pass", "fail")) {
+    }
+
+    if (action %in% c("pass", "fail")) {
       res$action <- action
       res$message <- message
       if ( ! is.null(notes))
@@ -42,6 +45,11 @@ run_tests <- function(test_list, bindings, ex) {
       return(res)
     }
   }
+  # we got here without a pass or failure. So it's an OK.
+  if ( ! is.null(notes))
+    res$message <- paste0("NOTES:\n", notes)
+  res$action = "ok"
+
   res
 }
 

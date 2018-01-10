@@ -89,7 +89,10 @@ hello_check(USER_CODE)
 Ordinarily, you would not show students the `checkr` statements implementing this behavior. But our purpose here is to introduce `checkr`, So here are the statements for the above exercise.
 
 ```{r echo = FALSE, comment = "", tidy = FALSE}
-print_function_contents(hello_check)
+print_function_contents(
+  hello_check,
+  from_file = system.file("learnr_examples/internal-examples.R", 
+                          package = "checkr2"))
 ```
 
 Breaking this down, line by line:
@@ -105,7 +108,10 @@ Depending on the submission, any of the checks on lines 2, 5, 9, and 10 might fa
 An instructor with a different pedagogical approach might prefer to structure the checking in an entirely different way. For instance, here are `checkr` statements that simply tell the user whether or not the submission did what was requested:
 
 ```{r echo = FALSE}
-print_function_contents(hello_fun_strict)
+print_function_contents(
+  hello_fun_strict,
+  from_file = system.file("learnr_examples/internal-examples.R", 
+                          package = "checkr2"))
 ```
 
 ```{r hello-world-strict, exercise = TRUE}
@@ -140,7 +146,10 @@ two_plus_two_check(USER_CODE)
 
 Here are the `checkr` statements implementing the above behavior:
 ```{r echo = FALSE}
-print_function_contents(two_plus_two_check)
+print_function_contents(
+  two_plus_two_check,
+  from_file = system.file("learnr_examples/internal-examples.R", 
+                          package = "checkr2"))
 ```
 
 

@@ -19,5 +19,5 @@
 check <- function(ex, ..., message = "Sorry!") {
   stopifnot(inherits(ex, "checkr_result"),
             length(ex$code) == 1)
-  line_binding(ex, {.(EX); ..(V)}, ..., message = message)
+  line_binding(ex, I, ..., message = message, qkeys = quote({.(EX); ..(V)}))
 }

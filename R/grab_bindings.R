@@ -5,6 +5,7 @@
 #'
 #' @param ex the expression to be searched for the patterns
 #' @param ... the set of patterns. Each pattern must be be enclosed in `quote()`. See details.
+#' @param key a single pattern enclosed in `quote()`.
 #' @param one_for_all Logical. If `TRUE`, then all patterns must match at least one
 #' expression in ex.
 #' @param all_for_one Logical. If `TRUE`, then there must be an expression
@@ -18,8 +19,10 @@
 #' ex <- for_checkr(quote(plot(mpg ~ wt, data = subset(mtcars, hp < 150))))
 #' grab_bindings(ex, quote(.(fn)(.(formula), data = .(the_data))))
 #' ex2 <- for_checkr(quote({x <- 1; y <- x^2}))
-#' grab_bindings(ex2, quote(`<-`(x, ..(first))), quote(`<-`(.(var), .(fn)(x, .(exponent)))), all_for_one = FALSE)
-#' grab_bindings(ex2, quote(`<-`(x, ..(first))), quote(`<-`(.(var), .(fn)(x, .(exponent)))))
+#' grab_bindings(ex2, quote(`<-`(x, ..(first))),
+#'      quote(`<-`(.(var), .(fn)(x, .(exponent)))), all_for_one = FALSE)
+#' grab_bindings(ex2, quote(`<-`(x, ..(first))),
+#'       quote(`<-`(.(var), .(fn)(x, .(exponent)))))
 #' grab_binding_anywhere(for_checkr(quote({4 - 7;sin(3 + 2)})), quote(`+`(.(a), .(b))))
 #' grab_binding_anywhere(for_checkr(quote({4 - 7;sin(3 + 2)})), quote(.(fn)(3 + 2)))
 #' grab_binding_anywhere(for_checkr(quote({4 - 7;sin(3 + 2)})), quote(`-`(.(a), .(b))))
@@ -66,6 +69,7 @@ grab_bindings <- function(ex, ...,
   bindings
 }
 
+#' @rdname grab_bindings
 #' @export
 grab_binding_anywhere <- function(ex, key) {
   stopifnot(inherits(ex, "checkr_result"))

@@ -1,16 +1,16 @@
 #' Find a line that is a magrittr chain
-#' 
-#' Code submissions may consist of one or more lines. Each of those lines may be 
+#'
+#' Code submissions may consist of one or more lines. Each of those lines may be
 #' written as a magrittr chain. `line_chaining()` will extract a single line that is a chain.
-#' 
-#' @details A chain is itself equivalent to multiple lines. If you are interested in 
-#' exploring within a chain, you can expand the chain into individual lines. See [checkr2::expand_chains()]
-#' 
+#'
+#' @details A chain is itself equivalent to multiple lines. If you are interested in
+#' exploring within a chain, you can expand the chain into individual lines. See `expand_chains()`.
+#'
 #' @param ex a checkr_result object such as produced by `for_checkr()`
 #' @param n An integer indicating which line that is a chain is desired: first, second, ...
-#' @seealso [checkr2::expand_chains()], [checkr2::expand_all_chains()]
+#' @seealso expand_chains, expand_all_chains
 #'
-#' @examples 
+#' @examples
 #' code <- for_checkr(quote({x <- 3 %>% sin() %>% cos(); x %>% sqrt() %>% log()}))
 #' line_chaining(code)
 #' line_chaining(code, n = 2L)

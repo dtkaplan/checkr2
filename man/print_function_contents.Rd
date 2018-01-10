@@ -4,13 +4,16 @@
 \alias{print_function_contents}
 \title{Print a function with numbered lines.}
 \usage{
-print_function_contents(fun, just_the_body = TRUE)
+print_function_contents(fun, just_the_body = TRUE, from_file = NULL)
 }
 \arguments{
 \item{fun}{Name of the function, e.g. \code{lm}.}
 
 \item{just_the_body}{If \code{TRUE}, show just the body of the function. Otherwise, include
 the function definition.}
+
+\item{from_file}{name of a .R file. If the function resides in a .R file, giving \code{from_file}
+will cause that .R file to be sourced.}
 }
 \description{
 Many checkr statements will be packaged into functions with just one input: \code{USER_CODE}.

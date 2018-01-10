@@ -2,9 +2,12 @@
 % Please edit documentation in R/grab_bindings.R
 \name{grab_bindings}
 \alias{grab_bindings}
+\alias{grab_binding_anywhere}
 \title{Grab any bindings from a pattern match}
 \usage{
 grab_bindings(ex, ..., all_for_one = TRUE, one_for_all = FALSE)
+
+grab_binding_anywhere(ex, key)
 }
 \arguments{
 \item{ex}{the expression to be searched for the patterns}
@@ -16,6 +19,8 @@ that matches all patterns.}
 
 \item{one_for_all}{Logical. If \code{TRUE}, then all patterns must match at least one
 expression in ex.}
+
+\item{key}{a single pattern enclosed in \code{quote()}.}
 }
 \description{
 UNLIKE the \code{check_} functions which return \code{checkr_result} objects,
@@ -30,8 +35,10 @@ Note that the patterns should include assignment if there is to be any.
 ex <- for_checkr(quote(plot(mpg ~ wt, data = subset(mtcars, hp < 150))))
 grab_bindings(ex, quote(.(fn)(.(formula), data = .(the_data))))
 ex2 <- for_checkr(quote({x <- 1; y <- x^2}))
-grab_bindings(ex2, quote(`<-`(x, ..(first))), quote(`<-`(.(var), .(fn)(x, .(exponent)))), all_for_one = FALSE)
-grab_bindings(ex2, quote(`<-`(x, ..(first))), quote(`<-`(.(var), .(fn)(x, .(exponent)))))
+grab_bindings(ex2, quote(`<-`(x, ..(first))),
+     quote(`<-`(.(var), .(fn)(x, .(exponent)))), all_for_one = FALSE)
+grab_bindings(ex2, quote(`<-`(x, ..(first))),
+      quote(`<-`(.(var), .(fn)(x, .(exponent)))))
 grab_binding_anywhere(for_checkr(quote({4 - 7;sin(3 + 2)})), quote(`+`(.(a), .(b))))
 grab_binding_anywhere(for_checkr(quote({4 - 7;sin(3 + 2)})), quote(.(fn)(3 + 2)))
 grab_binding_anywhere(for_checkr(quote({4 - 7;sin(3 + 2)})), quote(`-`(.(a), .(b))))

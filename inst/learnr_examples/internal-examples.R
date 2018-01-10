@@ -61,7 +61,7 @@ check_assigns <- function(ex, names = NULL, vals = NULL) {
     t1 <- line_where(res, Z == names[k], message = m)
     if (! is.null(vals)) {
       m <- paste("The object called", names[k], "should be a",
-                 checkr2:::to_sensible_character(vals[[k]]))
+                 to_sensible_character(vals[[k]]))
       t1 <- line_where(t1, Z == names[k], identical(V, vals[[k]]),
                  message = m)
     }
