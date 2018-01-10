@@ -7,7 +7,9 @@
 pre_check(user_code, soln_code = "hello")
 }
 \arguments{
-\item{user_code}{A character string containing the code to be checked.}
+\item{user_code}{A character string containing the code to be checked. Note that
+this is a character string, not a checkr_result. Constructing a checkr_result requires
+that the code be evaluated, while this function is for pre-evaluation checking.}
 
 \item{soln_code}{Code, if any, containing a correct solution.}
 }

@@ -3,8 +3,6 @@
 #' @param test_list a list containing a set of tests
 #' @param bindings the bindings resulting from a pattern match to a submission
 #'
-#' #WE DO NOT need to export this. Just for testing
-#' @export
 run_tests <- function(test_list, bindings, ex) {
   # run the tests with these bindings
   res <- new_checkr_result()

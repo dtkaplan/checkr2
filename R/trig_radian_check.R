@@ -21,10 +21,9 @@ trig_radian_check <- function(ex, radian_val,
   if (failed(ex)) return(ex) # If ex is a failure, pass it on as a result.
 
   # grab the call to a trigonometric function
-  trig_call <- line_calling(ex,
+  trig_call <- line_calling(ex, quote(sin), quote(cos), quote(tan),
                             fail = fail,
-                            pass = pass,
-                            qfuns = c(quote(sin), quote(cos), quote(tan)))
+                            pass = pass)
   if (failed(trig_call)) return(trig_call)
 
   # get the argument to the trig call

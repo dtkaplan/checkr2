@@ -7,7 +7,9 @@
 parse_check(user_code)
 }
 \arguments{
-\item{user_code}{a character string containing the code to parse}
+\item{user_code}{a character string containing the code to parse. Note, the input
+cannot be a checkr_result, since constructing one of those requires the code to be
+executed.}
 }
 \description{
 Parses the code (without evaluating it) to look for parse errors. If any are found,

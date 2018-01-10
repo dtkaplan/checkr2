@@ -21,7 +21,6 @@
 #' tidy_code <- for_checkr(quote({x <- 2; y <- x^3; z <- y + x}))
 #' line_where(tidy_code, F == "^")
 #'
-#' @rdname sequences
 #' @export
 line_where <- function(tidy_code, ..., message = "") {
   stopifnot(inherits(tidy_code, "checkr_result"))
@@ -97,33 +96,3 @@ matching_line <- function(tidy_code, ..., message = "", type = NULL, type_text="
        message = moustache(message, bindings = bindings))
 }
 
-# Get the lead function (ignoring any assignment)
-get_function <- function(tidy_expr) {
-  ex <- rlang::quo_expr(skip_assign(tidy_expr))
-  if (rlang::is_lang(ex)) rlang::lang_head(ex)
-  else NULL
-}
-# Get the name being assigned to. "" if no assignment.
-get_assignment_name <- function(tidy_expr){
-  if ( ! rlang::is_lang(rlang::quo_expr(tidy_expr))) return("")
-  res <- redpen::node_match(tidy_expr, `<-`(.(name), ...) ~ rlang::expr_text(name))
-
-  if (is.null(res)) ""
-  else res
-}
-# modify the expression to remove assignment.
-skip_assign <- function(ex) {
-  stopifnot(inherits(ex, "quosure"))
-  if ( ! rlang::is_lang(rlang::quo_expr(ex))) {
-    ex
-  } else {
-    top <- rlang::lang_head(ex)
-    if (as.name("<-") == top) {
-      skip_assign(
-        rlang::new_quosure(rlang::quo_expr(rlang::lang_tail(ex)[[2]]),
-                           environment(ex)))
-    } else {
-      rlang::new_quosure(rlang::quo_expr(ex), env = environment(ex))
-    }
-  }
-}

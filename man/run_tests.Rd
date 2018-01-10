@@ -9,9 +9,7 @@ run_tests(test_list, bindings, ex)
 \arguments{
 \item{test_list}{a list containing a set of tests}
 
-\item{bindings}{the bindings resulting from a pattern match to a submission
-
-#WE DO NOT need to export this. Just for testing}
+\item{bindings}{the bindings resulting from a pattern match to a submission}
 }
 \description{
 Run test statements in the context of the bindings

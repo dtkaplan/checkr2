@@ -6,6 +6,7 @@
 \alias{noteif}
 \alias{failif}
 \alias{noteif}
+\alias{insist}
 \title{Collate a test expression with a message and a action.}
 \usage{
 passif(test, message = default_message)
@@ -13,6 +14,8 @@ passif(test, message = default_message)
 failif(test, message = default_message)
 
 noteif(test, message = default_message)
+
+insist(test, message = "")
 }
 \arguments{
 \item{test}{an expression written in terms of values found
@@ -23,6 +26,11 @@ in the pattern-matching bindings}
 \description{
 These functions are simply a way to associate a message with a test.
 The test itself will be evaluated in \code{line_} functions, \code{arg_} functions, \code{check()}, etc.
+For \code{passif()}, \code{failif()}, and \code{noteif()}, the corresponding result will be generated  if the \code{test}
+passes. If the test fails, an "ok" result is generated. But for \code{insist()},
+a passing test will generate an "ok", and a failing test will generate a "fail". The point of \code{insist()} is
+to avoid the need to use double negative with \code{failif()}. The double negative is confusing and error prone to
+many people.
 }
 \details{
 The \code{message} can include components calculated from the bindings.
@@ -34,7 +42,8 @@ You can refer to the expression being tested with \code{{{expression_string}}} a
 \examples{
 code <- for_checkr(quote({x <- 2; y <- x^2; z <- x + y}))
 my_line <- line_where(code, F == `+`)
-# note: a double negative ... fail and y != 4
+check_binding(my_line, `+`(..(x), ..(y)), insist(y == 4, "use 4 for the second argument to +"))
+# or equivalently with a double negative ... fail and y != 4
 check_binding(my_line, `+`(..(x), ..(y)), failif(y != 4, "use 4 for the second argument to +"))
 
 }

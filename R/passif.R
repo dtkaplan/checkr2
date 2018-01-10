@@ -2,6 +2,11 @@
 #'
 #' These functions are simply a way to associate a message with a test.
 #' The test itself will be evaluated in `line_` functions, `arg_` functions, `check()`, etc.
+#' For `passif()`, `failif()`, and `noteif()`, the corresponding result will be generated  if the `test`
+#' passes. If the test fails, an "ok" result is generated. But for `insist()`,
+#' a passing test will generate an "ok", and a failing test will generate a "fail". The point of `insist()` is
+#' to avoid the need to use double negative with `failif()`. The double negative is confusing and error prone to
+#' many people.
 #'
 #' @rdname passif
 #' @aliases passif failif noteif
@@ -20,7 +25,8 @@
 #' @examples
 #' code <- for_checkr(quote({x <- 2; y <- x^2; z <- x + y}))
 #' my_line <- line_where(code, F == `+`)
-#' # note: a double negative ... fail and y != 4
+#' check_binding(my_line, `+`(..(x), ..(y)), insist(y == 4, "use 4 for the second argument to +"))
+#' # or equivalently with a double negative ... fail and y != 4
 #' check_binding(my_line, `+`(..(x), ..(y)), failif(y != 4, "use 4 for the second argument to +"))
 #'
 #' @rdname passif
@@ -32,3 +38,13 @@ failif <- generic_test(pass = "fail", fail = "ok", "Sorry.")
 #' @rdname passif
 #' @export
 noteif <- generic_test(pass = "ok", fail = "ok", "Just a note ...")
+#' @rdname passif
+#' @export
+insist <- function(test, message = "") {
+  test <- rlang::enquo(test)
+  function(task, res) {
+    if (task == "test") test
+    else if (task == "message") ifelse(res, "", message)
+    else if (task == "action") ifelse(res, "ok", "fail")
+  }
+}

@@ -3,7 +3,9 @@
 #' Checks first whether the code parses. If so, funs the code looking for errors.
 #' If any errors are found, a diagnostic message is returned.
 #'
-#' @param user_code A character string containing the code to be checked.
+#' @param user_code A character string containing the code to be checked. Note that
+#' this is a character string, not a checkr_result. Constructing a checkr_result requires
+#' that the code be evaluated, while this function is for pre-evaluation checking.
 #' @param soln_code Code, if any, containing a correct solution.
 #'
 #' @return A list containing fields `correct` and `message`. If `correct`

@@ -4,9 +4,12 @@
 \alias{n_args}
 \title{Tests on expressions}
 \usage{
-n_args(EX)
+n_args(ex)
+}
+\arguments{
+\item{ex}{A straight expression, for instance as bound to \code{EX} in \code{line_where().}}
 }
 \description{
-These functions can be applied to EX statements as produced by \code{chk()}.
-They calculate something about the expression.
+These functions can be applied to EX bindings as produced by \code{line_where()}.
+They calculate something about the EX expression.
 }
