@@ -27,9 +27,9 @@ check_for_learnr(label = NULL, user_code = NULL, solution_code = NULL,
 must be set at compile time, it's not for users.}
 }
 \description{
-When using learnr, the check statements should \emph{NOT} be wrapped with \code{check().}
-Instead, put the \code{if_matches()} functions directly in the check-chunk. The \code{ex} argument
-to \code{if_matches()} should be literally \code{USER_CODE}.
+This is the interface from learnr to checkr. You don't call this function directly: that will be
+done by learnr. Instead, you have to tell learnr to use this function. Do this with a directive
+in the setup chunk of the learnr document: \code{tutorial_options(exercise.checker = checkr2::check_for_learnr)}
 }
 \examples{
 # as it would be called from the learnr system ...

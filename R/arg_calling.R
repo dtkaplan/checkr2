@@ -23,7 +23,7 @@ arg_calling <- function(ex, ..., n=1L, message = "call to function") {
   qfuns <- quos(...)
   qfuns <- lapply(qfuns, FUN = quo_expr)
   test <- function(arg) {
-    arg %calls% qfuns
+    argument_calls(arg, qfuns)
   }
   generic_arg(ex, "specified function", test, n = n,
               message = message,

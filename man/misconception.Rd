@@ -2,12 +2,12 @@
 % Please edit documentation in R/misconception.R
 \name{misconception}
 \alias{misconception}
-\title{test for a misconceived statement}
+\title{Test for a misconceived statement}
 \usage{
-misconception(tidy_code, pattern, message)
+misconception(ex, pattern, message)
 }
 \arguments{
-\item{tidy_code}{A checkr result to use as input}
+\item{ex}{A checkr result to use as input}
 
 \item{pattern}{A code pattern as found by any of the functions returning a checkr_result object.}
 
@@ -17,4 +17,10 @@ misconception(tidy_code, pattern, message)
 Sometimes you expect a specific code pattern which might reflect a common misconception.
 \code{misconception()} let's you mark a pattern as such, causing the test to fail if the pattern
 is found.
+}
+\examples{
+code <- for_checkr(quote({theta <- 53; x <- sin(theta)}))
+misconception(code, line_where(code,V == 53), message = "Angle should be in degrees, not radians.")
+misconception(code, line_calling(code, sin), message = "For the x-coordinate, use cos().")
+
 }

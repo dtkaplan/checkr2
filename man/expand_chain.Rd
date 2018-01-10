@@ -25,3 +25,9 @@ or a function call.) The \code{expand_} functions transform chains into a sequen
 (except the first) will be a function with at least one of the inputs being denoted \code{.}. The value
 of \code{.} for each line will be the object that is an input to that line.
 }
+\examples{
+code <- for_checkr(quote({x <- 3 \%>\% sin() \%>\% cos(); x \%>\% sqrt() \%>\% log()}))
+lineA <- line_chaining(code)
+expand_chain(lineA)
+expand_all_chains(code)
+}

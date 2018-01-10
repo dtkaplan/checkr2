@@ -6,12 +6,18 @@
 #'
 #' @param ex the checkr_result object with a single line of code
 #' @param ... passif/failif tests to be applied
+#' @param message a character string to be used as the message for a failed result
 #'
 #' @return a checkr_result object reflecting the outcome of the tests
 #'
+#' @examples
+#' code <- for_checkr(quote({x <- 3; y <- x^2 + 2}))
+#' line2 <- line_where(code, Z == "y")
+#' check(line2, passif(V == 11, "Right, eleven!"),
+#'       message = "Sorry. The result should be 11.")
 #' @export
-check <- function(tidy_code_line, ..., message = "Sorry!") {
-  stopifnot(inherits(tidy_code_line, "checkr_result"),
-            length(tidy_code_line$code) == 1)
-  line_binding(tidy_code_line, {.(EX); ..(V)}, ..., message = message)
+check <- function(ex, ..., message = "Sorry!") {
+  stopifnot(inherits(ex, "checkr_result"),
+            length(ex$code) == 1)
+  line_binding(ex, {.(EX); ..(V)}, ..., message = message)
 }

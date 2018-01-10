@@ -1,9 +1,10 @@
 #' Comparison operators for bindings
 #'
-#' @aliases %same_as% %not_same_as% %calls% not
+#' @aliases %same_as% %not_same_as%  not
 #'
 #' @param e1 an expression,
 #' @param e2 another expression
+#' @rdname comparisons
 #' @export
 `%same_as%` <- function(e1, e2) {
   # Handle numbers specially so we don't have to worry about integers and floating points.
@@ -16,26 +17,13 @@
     identical(quo_expr(e1), quo_expr(e2))
   else identical(e1, e2)
 }
+#' @rdname comparisons
 #' @export
 `%not_same_as%` <- function(e1, e2) {
   ! e1 %same_as% e2
 }
 
-#' @export
-not <- function(e1) {
-  if (e1$action %in% c("pass", "ok")) e1$action = "fail"
-  else e1$action = "pass"
-
-  e1
-}
-
-#' @examples
-#' ex <- quote(15 * sin(pi))
-#' ex %calls% quote(sin)
-#' ex %calls% c(quote(sin), quote(cos))
-#' ex %calls% c(quote(tan), quote(cos))
-#' @export
-"%calls%" <- function(ex, funs) {
+argument_calls <- function(ex, funs) {
   # is it a call at the highest level?
   f1 <- redpen::node_match(ex, .(f)(...) ~ f)
   if (is.null(f1)) { # it isn't
@@ -46,13 +34,10 @@ not <- function(e1) {
     } else { # check each of the arguments to f1
       the_args <- rlang::lang_args(ex)
       for (k in seq_along(the_args)) {
-        res <- the_args[[k]] %calls% funs
+        res <- argument_calls(the_args[[k]], funs)
         if (res) return(TRUE)
       }
       return(FALSE)
     }
   }
 }
-
-
-# Also things like lhs and rhs for formulas, ...

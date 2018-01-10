@@ -6,7 +6,7 @@ copy_env <- function(E) {
   nms <- names(E)
   for (nm in nms)
     res[[nm]] <- E[[nm]]
-  
+
   res
 }
 
@@ -28,9 +28,9 @@ as_bracketed_expressions <- function(ex) {
   } else {
     Res <- ex
   }
-  
+
   Res
-  
+
 }
 
 # Utility for simplifying expressions that are gratuitously wrapped in
@@ -43,10 +43,34 @@ simplify_ex <- function(ex) {
   ex <- skip_assign(ex)
   ex <- rlang::new_quosure(simplify_ex_helper(rlang::quo_expr(ex)),
                            env = environment(ex))
-  
+
   ex
 }
 simplify_ex_helper <- function(raw_ex) { # recursive to remove nested parens.
   if (inherits(raw_ex, "(")) simplify_ex_helper(raw_ex[[2]])
   else raw_ex
 }
+
+new_checkr_result <- function(action = "ok", message = "", code = NULL) {
+  res <- list(action = action, message = message)
+  if ( ! is.null(code)) res$code <- code
+  class(res) <- "checkr_result"
+
+  res
+}
+
+generic_test <- function(pass = c("pass", "fail", "ok"),
+                         fail = c("pass", "fail", "ok"),
+                         default_message = "default test message" ) {
+  pass <- match.arg(pass)
+  fail <- match.arg(fail)
+  function(test, message = default_message) {
+    test <- rlang::enquo(test)
+    function(task, res) {
+      if (task == "test") test
+      else if (task == "message") ifelse(res, message, "")
+      else if (task == "action") ifelse(res, pass, fail)
+    }
+  }
+}
+

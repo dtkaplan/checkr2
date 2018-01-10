@@ -151,7 +151,7 @@ line_binding <- function(tidy_code, keys, ..., message = "No match found to spec
 
 
 #' @export
-test_binding <- line_binding
+check_binding <- line_binding
 
 
 

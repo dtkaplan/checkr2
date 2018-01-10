@@ -19,6 +19,12 @@ written as a magrittr chain. \code{line_chaining()} will extract a single line t
 A chain is itself equivalent to multiple lines. If you are interested in
 exploring within a chain, you can expand the chain into individual lines. See \code{\link[checkr2:expand_chains]{checkr2::expand_chains()}}
 }
+\examples{
+code <- for_checkr(quote({x <- 3 \%>\% sin() \%>\% cos(); x \%>\% sqrt() \%>\% log()}))
+line_chaining(code)
+line_chaining(code, n = 2L)
+
+}
 \seealso{
 \code{\link[checkr2:expand_chains]{checkr2::expand_chains()}}, \code{\link[checkr2:expand_all_chains]{checkr2::expand_all_chains()}}
 }

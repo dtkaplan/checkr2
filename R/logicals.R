@@ -1,7 +1,5 @@
-#' Utilities for checkr results
+#' Combine or negate checkr_results
 #'
-#' @rdname checkr_results
-#' @aliases %or% %and%
 #' The outcome of a checkr test is an object of class `checkr_result` that indicates
 #' whether the test was passed or failed or was sufficient to move on to additional tests.
 #'
@@ -28,17 +26,23 @@
 #' pa %and% fa
 #' pa %or% oka
 #' pa %and% oka
+#' not(pa)
+#' not(fa)
 #'
+#' @rdname logicals
 #' @export
 `%or%` <- function(res1, res2) {
   UseMethod("%or%")
 }
+#' @rdname logicals
 #' @export
 `%and%` <- function(res1, res2) {
   UseMethod("%and%")
 }
+#' @rdname logicals
 #' @export
 `%or%.checkr_result` <- function(res1, res2) {
+  stopifnot(inherits(res2, "checkr_result"))
   # Make sure they are both checkr_result and then combine in some sensible way
   # 1) req  || pass -> pass
   # 2) req  || fail -> req
@@ -61,8 +65,10 @@
     new_checkr_result("ok", message = mess$ok_note)
   } else stop("illegal combination of checkr_results")
 }
+#' @rdname logicals
 #' @export
 `%and%.checkr_result` <- function(res1, res2) {
+  stopifnot(inherits(res2, "checkr_result"))
   # 1) pass && pass -> pass
   # 2) any fail   -> fail
   # 3) ok && ok   -> ok
@@ -84,6 +90,17 @@
   }
 
 }
+
+#' @rdname logicals
+#' @export
+not <- function(e1) {
+  stopifnot(inherits(e1, "checkr_result"))
+  if (e1$action %in% c("pass", "ok")) e1$action = "fail"
+  else e1$action = "pass"
+
+  e1
+}
+
 
 # combine messages from checkr_results
 combine_messages <- function(res1, res2) {
@@ -121,35 +138,3 @@ combine_messages <- function(res1, res2) {
   list(ok_note = ok_note, fail_message = fail_message, pass_message = pass_message)
 }
 
-
-new_checkr_result <- function(action = "ok", message = "", code = NULL) {
-  res <- list(action = action, message = message)
-  if ( ! is.null(code)) res$code <- code
-  class(res) <- "checkr_result"
-
-  res
-}
-#' @export
-print.checkr_result <- function(x, ...) {
-  has_code <- "code" %in% names(x)
-  if (x$message == "")
-    oneline <- paste0("checkr result: *", x$action, "*\n")
-  else
-    oneline <- paste0("checkr result *", x$action, "* with message:\n", x$message)
-
-  cat(oneline)
-  if (has_code) {
-    cat("\nCODE:\n")
-    print(x$code)
-  }
-}
-
-#' @export
-print_function_contents <- function(fun, just_the_body = TRUE) {
-  body_text <- capture.output(body(fun))
-  body_text <- gsub("^ {4}", "", body_text[-c(1, length(body_text))])
-  line_nums <- paste0("[", as.character(1:length(body_text)), "]")
-  line_nums <- formatC(line_nums, width = max(nchar(line_nums)))
-
-  cat(paste(line_nums, body_text, collapse = "\n"))
-}

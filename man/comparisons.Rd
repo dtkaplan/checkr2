@@ -3,11 +3,13 @@
 \name{\%same_as\%}
 \alias{\%same_as\%}
 \alias{\%not_same_as\%}
-\alias{\%calls\%}
 \alias{not}
+\alias{\%not_same_as\%}
 \title{Comparison operators for bindings}
 \usage{
 e1 \%same_as\% e2
+
+e1 \%not_same_as\% e2
 }
 \arguments{
 \item{e1}{an expression,}

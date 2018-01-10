@@ -4,12 +4,14 @@
 \alias{check}
 \title{Apply passif/failif/okif tests to an identified code object}
 \usage{
-check(tidy_code_line, ..., message = "Sorry!")
+check(ex, ..., message = "Sorry!")
 }
 \arguments{
+\item{ex}{the checkr_result object with a single line of code}
+
 \item{...}{passif/failif tests to be applied}
 
-\item{ex}{the checkr_result object with a single line of code}
+\item{message}{a character string to be used as the message for a failed result}
 }
 \value{
 a checkr_result object reflecting the outcome of the tests
@@ -18,4 +20,10 @@ a checkr_result object reflecting the outcome of the tests
 A generic testing function for applying passif/failif tests with V and EX bindings
 to a checkr_result object. Unlike \code{line_where()}, other line functions, no patterns
 need to be provided. Just the passif/failif tests.
+}
+\examples{
+code <- for_checkr(quote({x <- 3; y <- x^2 + 2}))
+line2 <- line_where(code, Z == "y")
+check(line2, passif(V == 11, "Right, eleven!"),
+      message = "Sorry. The result should be 11.")
 }
