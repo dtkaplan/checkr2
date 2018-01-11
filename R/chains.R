@@ -13,6 +13,7 @@
 #' `expand_chain()` expands one chain. `expand_all_chains()` takes a sequence of lines, some of
 #' which may be chains, into an equivalent sequence of lines, none of which are chains.
 #'
+#' @importFrom magrittr %>%
 #'
 #' @return A `checkr_result` object with one line for each of the functions in the chain.
 #'
@@ -25,7 +26,7 @@
 #' @param ex A `checkr_result` object with just one line of code.
 #'
 #' @examples
-#' code <- for_checkr(quote({x <- 3 %>% sin() %>% cos(); x %>% sqrt() %>% log()}))
+#' code <- for_checkr(quote({x <- 3 %>% sin( ) %>% cos(); x %>% sqrt() %>% log()}))
 #' lineA <- line_chaining(code)
 #' expand_chain(lineA)
 #' expand_all_chains(code)
@@ -33,18 +34,31 @@
 #' @export
 expand_chain <- function(ex) {
   stopifnot(inherits(ex, "checkr_result"))
-  if ( ! is_chain(ex$code[[1]])) return(ex) # already expanded
+  if ( ! is_chain(simplify_ex(ex$code[[1]]))) return(ex) # already expanded
   if (failed(ex)) return(ex) # short circuit on failure
-  CP <- magrittr:::split_chain(rlang::quo_expr(simplify_ex(ex$code[[1]])))
-  new_code <- list()
+  # originally, the logic was based on magrittr:::split_chain
+  # which gave expressions for the single LHS and the possibly many RHS.
+  # To avoid using an unexported function (i.e. :::), I re-wrote this
+  # using lang_tail()
+  CP <- lang_tail(rlang::quo_expr(skip_assign(ex$code[[1]])))
+  if (is_lang(CP[[1]]) && lang_head(CP[[1]]) == as.name("%>%")) {
+    # A chain longer than one link needs to have the first part
+    # broken up
+    first <- CP[[1]]
+    CP[[1]] <- NULL
+    CP <- c(lang_tail(first), CP)
+  }
+  for (k in seq_along(CP)) { # make sure there's a dot argument
+    if (is_lang(CP[[k]]) && is.null(lang_tail(CP[[k]])))
+      CP[[k]] <- lang(lang_head(CP[[k]]), quote(.))
+  }
+  new_code <- list() # holds the sequence of quo's representing the chain
   this_env <- environment(ex$code[[1]])
-  # handle the extreme lhs
-  new_code[[1]] <- rlang::new_quosure(expr = CP$lhs, env = this_env)
   # loop over the remaining elements in the chain
-  for (m in seq_along(CP$rhss)) {
+  for (m in seq_along(CP)) {
+    new_code[[m]] <- rlang::new_quosure(expr = CP[[m]], env = this_env)
     value <- eval_tidy(new_code[[m]]) # the previous element
     this_env <- child_env(.parent = this_env, . = value)
-    new_code[[m+1]] <- rlang::new_quosure(expr = CP$rhss[[m]], env = this_env)
   }
   ex$code <- new_code
   return(ex)
@@ -104,3 +118,4 @@ is_chain <- function(ex) {
     identical(as.name(rlang::lang_head(ex)), as.name("%>%"))
   }
 }
+

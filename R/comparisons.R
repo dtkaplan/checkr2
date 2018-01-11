@@ -4,7 +4,7 @@
 #'
 #' @importFrom rlang eval_tidy quo_expr child_env quos new_quosure
 #' @importFrom rlang enexpr is_formula expr_text quo enquo is_quosure
-#' @importFrom rlang is_lang lang_args lang_args_names
+#' @importFrom rlang is_lang lang_args lang_args_names lang lang_tail lang_head
 #' @param e1 an expression,
 #' @param e2 another expression
 #' @rdname comparisons

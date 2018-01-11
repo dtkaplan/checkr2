@@ -47,3 +47,12 @@ test_that("Can handle chains with just 1 link", {
   expect_false(failed(r4))
   expect_equal(eval_tidy(r4$code[[1]]), mtcars)
 })
+
+test_that("Chain expansion works even when functions don't have . as an explicit argument.", {
+  code <- for_checkr(quote({x <- 3 %>% sin( ) %>% cos(); x %>% sqrt() %>% log()}))
+  lineA <- line_chaining(code)
+  r1 <- expand_chain(lineA)
+  expect_equal(length(r1$code), 3)
+  r2 <- expand_all_chains(code)
+  expect_equal(length(r2$code), 6)
+})
